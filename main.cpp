@@ -1395,7 +1395,7 @@ void draw_ui_button(SDL_Surface* ecran, TTF_Font* font, const char* label, SDL_R
     SDL_FillRect(ecran, &outer, SDL_MapRGB(ecran->format, 29, 43, 61));
     SDL_Rect face = {static_cast<Sint16>(bounds.x + 3), static_cast<Sint16>(bounds.y + 3),
                      static_cast<Uint16>(bounds.w - 6), static_cast<Uint16>(bounds.h - 6)};
-    SDL_FillRect(ecran, &face, SDL_MapRGB(ecran->format, 32, 55, 84));
+    SDL_FillRect(ecran, &face, SDL_MapRGB(ecran->format, 82, 147, 99));
     SDL_Rect highlight = {static_cast<Sint16>(bounds.x + 7), static_cast<Sint16>(bounds.y + 6),
                           static_cast<Uint16>(bounds.w - 14), 3};
     SDL_FillRect(ecran, &highlight, SDL_MapRGB(ecran->format, 147, 190, 105));
