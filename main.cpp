@@ -30,6 +30,9 @@ int affonlyvictyouinon(SDL_Surface* ecran,SDL_Rect posiclic);
 void affefface(SDL_Surface* ecran);
 int affcomplet(SDL_Surface* ecran,SDL_Rect posiclic);
 void draw_ui_button(SDL_Surface* ecran, TTF_Font* font, const char* label, SDL_Rect bounds);
+void draw_game_text(SDL_Surface* ecran, TTF_Font* font, const char* label, SDL_Rect at, SDL_Color color);
+void draw_level_thumbnail(SDL_Surface* ecran, const int map[80], int x, int y, int width, int height);
+void redraw_board_cell(SDL_Surface* ecran, int value, SDL_Rect at);
 
 int main ( int argc, char* argv[] )
 {
@@ -116,31 +119,20 @@ while(finpartie < 4 && quit == 0)
 
     image_demarrage = SDL_LoadBMP ("sprites_mario_sokoban/menu.bmp");
     SDL_BlitSurface(image_demarrage , NULL, ecran, &pimage_demarrage );
-    police = TTF_OpenFont("NotoSans.ttf", 40);
-    positexte.x = 10;
-    positexte.y = 500;
-    texte = TTF_RenderText_Blended(police, "créé par Rémi Fache....",couleurorange);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    TTF_CloseFont(police); /* Doit être avant TTF_Quit() */
+    police = TTF_OpenFont("NotoSans.ttf", 18);
+    positexte.x = 12;
+    positexte.y = 510;
+    draw_game_text(ecran, police, "CREATED BY FROMTHERAGS", positexte, SDL_Color{255, 231, 149});
+    TTF_CloseFont(police);
 
     police = TTF_OpenFont("NotoSans.ttf", 40);
-    SDL_Color couleurtexte = {255, 245, 205};
-    SDL_Color couleurfond = {32, 55, 84};
-    texte = TTF_RenderText_Shaded(police, "MARIO SOKOBAN", couleurtexte, couleurfond);
-    positexte.x = 225;
-    positexte.y = 75;
-    SDL_BlitSurface(texte, NULL, ecran, &positexte);
-    SDL_FreeSurface(texte);
-    texte = TTF_RenderText_Shaded(police, "1 - JOUER", couleurtexte, couleurfond);
-    positexte.x = 248;
-    positexte.y = 218;
-    SDL_BlitSurface(texte, NULL, ecran, &positexte);
-    SDL_FreeSurface(texte);
-    texte = TTF_RenderText_Shaded(police, "2 - CREER", couleurtexte, couleurfond);
-    positexte.x = 248;
-    positexte.y = 262;
-    SDL_BlitSurface(texte, NULL, ecran, &positexte);
-    SDL_FreeSurface(texte);
+    positexte.x = 225; positexte.y = 75;
+    draw_game_text(ecran, police, "MARIO SOKOBAN", positexte, SDL_Color{255,245,205});
+    police = TTF_OpenFont("NotoSans.ttf", 26);
+    positexte.x = 260; positexte.y = 217;
+    draw_game_text(ecran, police, "1 - JOUER", positexte, SDL_Color{255,245,205});
+    positexte.x = 260; positexte.y = 262;
+    draw_game_text(ecran, police, "2 - CREER", positexte, SDL_Color{255,245,205});
     TTF_CloseFont(police);
 
     SDL_Flip(ecran);
@@ -434,11 +426,7 @@ fois=0;
           if(event.key.keysym.sym == SDLK_UP ||event.key.keysym.sym ==SDLK_DOWN
              ||event.key.keysym.sym ==SDLK_RIGHT||event.key.keysym.sym ==SDLK_LEFT)
      {
-         mario = SDL_CreateRGBSurface(SDL_HWSURFACE, 68, 68, 16, 0, 0,0, 0);//on charge un carré blanc à l'ancien emplacement de mario
-    SDL_FillRect(mario, NULL, SDL_MapRGB(ecran->format, 255,255,255));//cela permet d'éviter de se servir à chaque boucle de la fonction load(ce qui fait moche et ramer)
-    SDL_BlitSurface(mario, NULL, ecran, &posimario); /* On
-place mario à sa nouvelle position */
-SDL_Flip(ecran); /* On met à jour l'affichage */
+         redraw_board_cell(ecran, tableau1[cases(posimario)-1], posimario);
      }
          if(event.key.keysym.sym == SDLK_UP)
      {
@@ -713,24 +701,19 @@ do
         sauteif = 0;
         creationend = 0;
 
-   ecran_partie= SDL_LoadBMP ("sprites_mario_sokoban/editor.bmp");
-    SDL_BlitSurface(ecran_partie , NULL, ecran, &posi_partie );
-    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
-    SDL_BlitSurface(retour , NULL, ecran, &posiretour );
-    police = TTF_OpenFont("NotoSans.ttf", 60);
-    positexte.x =210;
-    positexte.y = 150;
-    texte = TTF_RenderText_Shaded(police, " Nouveau ",couleurorange,couleurbleumarine);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.y = 250;
-    texte = TTF_RenderText_Shaded(police, " Modifier ",couleurorange,couleurbleumarine);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.y = 350;
-    texte = TTF_RenderText_Shaded(police, " Supprimer ",couleurorange,couleurbleumarine);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
+   ecran_partie = SDL_LoadBMP("sprites_mario_sokoban/editor.bmp");
+    if(ecran_partie){SDL_BlitSurface(ecran_partie,NULL,ecran,&posi_partie);SDL_FreeSurface(ecran_partie);ecran_partie=NULL;}
+    retour=SDL_LoadBMP("sprites_mario_sokoban/back.bmp");
+    if(retour){SDL_BlitSurface(retour,NULL,ecran,&posiretour);SDL_FreeSurface(retour);retour=NULL;}
+    police=TTF_OpenFont("NotoSans.ttf",36);
+    if(police){
+        SDL_Rect title={225,60,0,0};
+        draw_game_text(ecran,police,"EDITEUR DE NIVEAUX",title,SDL_Color{255,231,149});
+        draw_ui_button(ecran,police,"NOUVEAU",SDL_Rect{180,145,320,68});
+        draw_ui_button(ecran,police,"MODIFIER",SDL_Rect{180,245,320,68});
+        draw_ui_button(ecran,police,"SUPPRIMER",SDL_Rect{180,345,320,68});
+        TTF_CloseFont(police);
+    }
     SDL_Flip(ecran);
 
 
@@ -754,19 +737,19 @@ do
        debutcrea = 0;
        jouer = 4;//pour ne pas rentrer dans une boucle(==)
       }
-      if(posiclic.x >= 210 && posiclic.x <= 378 && posiclic.y >= 150 && posiclic.y <= 210)
+      if(posiclic.x >= 180 && posiclic.x <= 500 && posiclic.y >= 145 && posiclic.y <= 213)
       {           //nouveau
        jouer = 1;
        creationend = 0;
        continuer = 0;
       }
-      if(posiclic.x >= 210 && posiclic.x <= 378 && posiclic.y >= 250 && posiclic.y <= 310)
+      if(posiclic.x >= 180 && posiclic.x <= 500 && posiclic.y >= 245 && posiclic.y <= 313)
       {
        jouer = 2;//modifier
        creationend = 0;
        continuer = 0;
       }
-      if(posiclic.x >= 210 && posiclic.x <= 210+183 && posiclic.y >= 350 && posiclic.y <= 410)
+      if(posiclic.x >= 180 && posiclic.x <= 500 && posiclic.y >= 345 && posiclic.y <= 413)
       {
        jouer = 3;//supprimer
        creationend = 0;
@@ -1021,15 +1004,16 @@ do
     for (int tool = 0; tool < 9; ++tool) {
         SDL_Surface *icon = SDL_LoadBMP((std::string("sprites_mario_sokoban/") + toolbar[tool]).c_str());
         if (icon) {
-            SDL_Rect iconPos = {static_cast<Sint16>(toolbarX[tool]), 0, 0, 0};
-            SDL_BlitSurface(icon, NULL, ecran, &iconPos);
+            SDL_Surface *converted = SDL_ConvertSurface(icon, ecran->format, SDL_SWSURFACE);
+            SDL_Rect iconPos = {static_cast<Sint16>(toolbarX[tool] + 17), 0, 34, 34};
+            if (converted) {
+                SDL_SoftStretch(converted, NULL, ecran, &iconPos);
+                SDL_FreeSurface(converted);
+            }
             SDL_FreeSurface(icon);
         }
     }
 
-    posicolleimagecrea.x =68*7;
-    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/play.bmp");
-    SDL_BlitSurface(colleimagecrea , NULL, ecran, &posicolleimagecrea );
      if(level == 9)
      {
          affefface(ecran);
@@ -1241,9 +1225,8 @@ do
     }
     if(cursus == 6)
     {tableaucrea[cases(posiclic)-1] =2;
-    colleimagecrea= SDL_CreateRGBSurface(SDL_HWSURFACE, 68, 68, 16, 0, 0,0, 0);//on charge un carré blanc à l'ancien emplacement DE L'OBJET
-    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran->format, 255,255,255));
-    SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
+    colleimagecrea=SDL_LoadBMP("sprites_mario_sokoban/floor.bmp");
+    SDL_BlitSurface(colleimagecrea,NULL,ecran,&posiclic);
     }
 
     }
@@ -1293,9 +1276,9 @@ do
     if(cursus == 6)
     {tableaucrea[cases(posiclic)-1] =2;
     posiclic.y +=34;
-    colleimagecrea= SDL_CreateRGBSurface(SDL_HWSURFACE, 68, 34, 16, 0, 0,0, 0);//on charge un carré blanc à l'ancien emplacement DE L'OBJET
-    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran->format, 255,255,255));
-    SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
+    colleimagecrea=SDL_LoadBMP("sprites_mario_sokoban/floor.bmp");
+    SDL_Rect floorHalf={0,34,68,34};
+    SDL_BlitSurface(colleimagecrea,&floorHalf,ecran,&posiclic);
     posiclic.y -=34;
     }
     }
@@ -1336,9 +1319,6 @@ arrete = 0;
         arrete++;
 
     }
-    posicolleimagecrea.x =68*7;
-    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/play.bmp");
-    SDL_BlitSurface(colleimagecrea , NULL, ecran, &posicolleimagecrea );
 
 
 
@@ -1409,6 +1389,59 @@ void draw_ui_button(SDL_Surface* ecran, TTF_Font* font, const char* label, SDL_R
     }
 }
 
+void draw_game_text(SDL_Surface* ecran, TTF_Font* font, const char* label, SDL_Rect at, SDL_Color color)
+{
+    if (!ecran || !font || !label) return;
+    SDL_Color outline = {29, 43, 61};
+    for (int dy = -2; dy <= 2; dy += 2)
+        for (int dx = -2; dx <= 2; dx += 2) {
+            SDL_Surface *edge = TTF_RenderText_Blended(font, label, outline);
+            if (edge) {
+                SDL_Rect p = {static_cast<Sint16>(at.x + dx), static_cast<Sint16>(at.y + dy), 0, 0};
+                SDL_BlitSurface(edge, NULL, ecran, &p);
+                SDL_FreeSurface(edge);
+            }
+        }
+    SDL_Surface *face = TTF_RenderText_Blended(font, label, color);
+    if (face) { SDL_BlitSurface(face, NULL, ecran, &at); SDL_FreeSurface(face); }
+}
+
+void draw_level_thumbnail(SDL_Surface* ecran, const int map[80], int x, int y, int width, int height)
+{
+    SDL_Rect frame = {static_cast<Sint16>(x), static_cast<Sint16>(y),
+                      static_cast<Uint16>(width), static_cast<Uint16>(height)};
+    SDL_FillRect(ecran, &frame, SDL_MapRGB(ecran->format, 29, 43, 61));
+    const int cellW = (width - 8) / 10, cellH = (height - 8) / 8;
+    for (int i = 0; i < 80; ++i) {
+        SDL_Rect cell = {static_cast<Sint16>(x + 4 + (i % 10) * cellW),
+                         static_cast<Sint16>(y + 4 + (i / 10) * cellH),
+                         static_cast<Uint16>(cellW), static_cast<Uint16>(cellH)};
+        int value = map[i]; Uint8 r=181,g=205,b=158;
+        if (value==1) {r=48;g=81;b=104;}
+        else if (value==3||value==6) {r=174;g=112;b=61;}
+        else if (value==4) {r=244;g=198;b=93;}
+        else if (value==5) {r=202;g=83;b=79;}
+        SDL_FillRect(ecran,&cell,SDL_MapRGB(ecran->format,r,g,b));
+        if (value==6) {
+            SDL_Rect goal={static_cast<Sint16>(cell.x+cell.w/4),static_cast<Sint16>(cell.y+cell.h/4),
+                           static_cast<Uint16>(cell.w/2),static_cast<Uint16>(cell.h/2)};
+            SDL_FillRect(ecran,&goal,SDL_MapRGB(ecran->format,255,220,115));
+        }
+    }
+}
+
+void redraw_board_cell(SDL_Surface* ecran, int value, SDL_Rect at)
+{
+    SDL_Surface *tile=SDL_LoadBMP("sprites_mario_sokoban/floor.bmp");
+    if(tile){SDL_BlitSurface(tile,NULL,ecran,&at);SDL_FreeSurface(tile);}
+    const char *asset=NULL;
+    if(value==1)asset="sprites_mario_sokoban/wall.bmp";
+    else if(value==3)asset="sprites_mario_sokoban/crate.bmp";
+    else if(value==4)asset="sprites_mario_sokoban/target.bmp";
+    else if(value==6)asset="sprites_mario_sokoban/crate_target.bmp";
+    if(asset){tile=SDL_LoadBMP(asset);if(tile){SDL_BlitSurface(tile,NULL,ecran,&at);SDL_FreeSurface(tile);}}
+}
+
 void pause()
 {
     int continuer = 1;
@@ -1426,28 +1459,26 @@ void pause()
 void choixniv(SDL_Surface* ecran)
 {
     TTF_Init();
-    SDL_Surface *fond = SDL_LoadBMP("sprites_mario_sokoban/garden_detail.bmp");
-    if (fond) {
-        SDL_Rect origin = {0, 0, 0, 0};
-        SDL_BlitSurface(fond, NULL, ecran, &origin);
-        SDL_FreeSurface(fond);
-    }
-    TTF_Font *police = TTF_OpenFont("NotoSans.ttf", 40);
-    if (police) {
-        SDL_Color textColor = {250, 239, 205};
-        SDL_Surface *title = TTF_RenderText_Blended(police, "CHOISIS TON NIVEAU", textColor);
-        if (title) {
-            SDL_Rect titlePos = {170, 54, 0, 0};
-            SDL_BlitSurface(title, NULL, ecran, &titlePos);
-            SDL_FreeSurface(title);
+    SDL_Surface *fond=SDL_LoadBMP("sprites_mario_sokoban/garden_detail.bmp");
+    if(fond){SDL_Rect origin={0,0,0,0};SDL_BlitSurface(fond,NULL,ecran,&origin);SDL_FreeSurface(fond);}
+    TTF_Font *font=TTF_OpenFont("NotoSans.ttf",30);
+    if(font){
+        SDL_Rect title={202,48,0,0};
+        draw_game_text(ecran,font,"CHOISIS TON NIVEAU",title,SDL_Color{255,245,205});
+        const int xs[6]={120,285,450,120,285,450};
+        const int ys[6]={150,150,150,250,250,250};
+        for(int level=1;level<=6;++level){
+            int index=level-1, map[80];
+            for(int cell=0;cell<80;++cell)map[cell]=tableau(level,cell);
+            SDL_Rect card={static_cast<Sint16>(xs[index]),static_cast<Sint16>(ys[index]),74,76};
+            draw_ui_button(ecran,font," ",card);
+            draw_level_thumbnail(ecran,map,xs[index]+7,ys[index]+7,60,39);
+            char label[4];snprintf(label,sizeof(label),"%d",level);
+            SDL_Rect number={static_cast<Sint16>(xs[index]+31),static_cast<Sint16>(ys[index]+49),0,0};
+            draw_game_text(ecran,font,label,number,SDL_Color{255,245,205});
         }
-        const char *labels[7] = {"1", "2", "3", "4", "5", "6", "NIVEAUX PERSO"};
-        const SDL_Rect buttons[7] = {
-            {120,150,74,76}, {285,150,74,76}, {450,150,74,76},
-            {120,250,74,76}, {285,250,74,76}, {450,250,74,76}, {120,350,404,70}
-        };
-        for (int i = 0; i < 7; ++i) draw_ui_button(ecran, police, labels[i], buttons[i]);
-        TTF_CloseFont(police);
+        draw_ui_button(ecran,font,"NIVEAUX PERSO",SDL_Rect{120,350,404,70});
+        TTF_CloseFont(font);
     }
     SDL_Flip(ecran);
     TTF_Quit();
@@ -1469,8 +1500,6 @@ void load(SDL_Surface *ecran, int niveau,int tableau1[])
     position.y = 0;
 
     SDL_BlitSurface(rectangle, NULL, ecran, &position);//colle le rectangle à l'écran(0 parce que l'on ne sert pas de ces paramètres
-
-    SDL_Flip(ecran); // Mise à jour de l'écran
 
     carre = SDL_LoadBMP("sprites_mario_sokoban/floor.bmp");
     if (carre) {
@@ -1927,187 +1956,61 @@ int casesmodif(SDL_Rect posimario)
 
 int victoire(SDL_Surface* ecran)
 {
-
-    TTF_Init();//démarrage de la bibliothèque texte
-    SDL_Color couleurindigo = {10, 206, 212};
-    SDL_Color couleurrouge = {255,0,0};
-    SDL_Color couleurviolette = {165,32,175};
-    SDL_Color couleurorange = {255,123,0};
-    SDL_Color couleurrose = {255,81,255};
-    SDL_Color couleurjaune = {255,233,0};
-    SDL_Color couleurvertepomme = {177,255,23};
-    SDL_Color couleurbleumarine = {0,0,255};
-    SDL_Color couleurblanche = {255,255,255};
-
-    TTF_Font *police = NULL;
-    SDL_Surface *texte = NULL;
-    SDL_Rect positexte;
-    positexte.x = 0;
-    positexte.y = 0;
-     police = TTF_OpenFont("NotoSans.ttf", 155);
-
-     positexte.x = 0;
-    positexte.y = 30;
-    texte = TTF_RenderText_Blended(police, "V",couleurrouge);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 110;
-    texte = TTF_RenderText_Blended(police, "I",couleurrose);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 150;
-    texte = TTF_RenderText_Blended(police, "C",couleurorange);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 235;
-    texte = TTF_RenderText_Blended(police, "T",couleurjaune);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 330;
-    texte = TTF_RenderText_Blended(police, "O",couleurvertepomme);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 420;
-    texte = TTF_RenderText_Blended(police, "I",couleurindigo);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 480;
-    texte = TTF_RenderText_Blended(police, "R",couleurbleumarine);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 580;
-    texte = TTF_RenderText_Blended(police, "E",couleurviolette);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    TTF_CloseFont(police); /* Doit être avant TTF_Quit() */
-    police = TTF_OpenFont("NotoSans.ttf", 75);
-
-    positexte.x = 100;
-    positexte.y = 200;
-    texte = TTF_RenderText_Shaded(police, "Niveau",couleurorange,couleurbleumarine);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte);
-    positexte.x = 400;
-    positexte.y = 200;
-    texte = TTF_RenderText_Shaded(police, "Rejouer",couleurindigo,couleurblanche);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte);
-    positexte.x = 255;
-    positexte.y = 280;
-    texte = TTF_RenderText_Shaded(police, "Menu",couleurviolette,couleurrouge);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte);
-
-
-
+    TTF_Init();
+    SDL_Surface *background=SDL_LoadBMP("sprites_mario_sokoban/garden_detail.bmp");
+    if(background){SDL_Rect at={0,0,0,0};SDL_BlitSurface(background,NULL,ecran,&at);SDL_FreeSurface(background);}
+    SDL_Surface *medal=SDL_LoadBMP("sprites_mario_sokoban/medal.bmp");
+    if(medal){SDL_Rect at={306,98,0,0};SDL_BlitSurface(medal,NULL,ecran,&at);SDL_FreeSurface(medal);}
+    TTF_Font *font=TTF_OpenFont("NotoSans.ttf",54);
+    if(font){
+        SDL_Rect title={205,28,0,0},note={255,177,0,0};
+        draw_game_text(ecran,font,"YOU WIN!",title,SDL_Color{255,231,149});
+        draw_game_text(ecran,font,"NIVEAU TERMINE",note,SDL_Color{250,239,205});
+        draw_ui_button(ecran,font,"REJOUER",SDL_Rect{100,270,165,80});
+        draw_ui_button(ecran,font,"NIVEAU",SDL_Rect{400,270,180,80});
+        draw_ui_button(ecran,font,"MENU",SDL_Rect{255,370,154,80});
+        TTF_CloseFont(font);
+    }
     SDL_Flip(ecran);
-
-
-    SDL_Rect posiclic;
-    posiclic.x = 0;
-    posiclic.y = 0;
-     int continuer = 1,niveau = 0;
-     SDL_Event event;
-
-    while(continuer)
-      {
-          SDL_WaitEvent(&event);
-      switch(event.type)
-      {
-      case SDL_QUIT:
-      continuer = 0;
-
-       break;
-       case SDL_MOUSEBUTTONUP: /* Clic de la souris */
-       posiclic.x = event.button.x; /* change les coordonnées de posiclic*/
-       posiclic.y = event.button.y;
-       niveau=choixniveau(posiclic);
-       if(niveau != 0)
-       {continuer = 0;
-
-       }
-       else
-       {
-           continuer = 1;
-
-       }
-       break;
-      }
-      }
-
-
-    SDL_FreeSurface(texte);
-    TTF_CloseFont(police); /* Doit être avant TTF_Quit() */
-    TTF_Quit();//quitte la biblio texte
-    return niveau;
-
+    SDL_Event event;
+    for(;;){
+        SDL_WaitEvent(&event);
+        if(event.type==SDL_QUIT){TTF_Quit();return 4;}
+        if(event.type==SDL_MOUSEBUTTONUP){
+            SDL_Rect click={static_cast<Sint16>(event.button.x),static_cast<Sint16>(event.button.y),0,0};
+            int choice=choixniveau(click);
+            if(choice){TTF_Quit();return choice;}
+        }
+    }
 }
+
 int choixniveau(SDL_Rect posiclic)
 {
-
-    if(posiclic.x >= 100 && posiclic.x <= 265 && posiclic.y >= 200 && posiclic.y <= 280)
-    return 1;
-    if(posiclic.x >= 400 && posiclic.x <=580  && posiclic.y >= 200 && posiclic.y <= 280)
-    return 2;
-    if(posiclic.x >= 255 && posiclic.x <= 409 && posiclic.y >= 280 && posiclic.y <=360 )
-    return 3;
-
-
+    if(posiclic.x>=100&&posiclic.x<=265&&posiclic.y>=270&&posiclic.y<=350)return 2;
+    if(posiclic.x>=400&&posiclic.x<=580&&posiclic.y>=270&&posiclic.y<=350)return 1;
+    if(posiclic.x>=255&&posiclic.x<=409&&posiclic.y>=370&&posiclic.y<=450)return 3;
     return 0;
-
-
 }
+
 void affvict(SDL_Surface* ecran,SDL_Rect posivict, int fois,SDL_Surface* affiche)
 {
-        TTF_Init();//démarrage de la bibliothèque texte
-        TTF_Font *police = NULL;
-    SDL_Color couleurbleulagon = {11,227,206};
-    SDL_Color couleurnoirenuance = {51,51,51};
-    posivict.x = 0;
-    posivict.y = 470;
-    police = TTF_OpenFont("NotoSans.ttf", 35);
-    /* afficher You Win:*/
-    affiche = TTF_RenderText_Blended(police, " YOU WIN:",couleurnoirenuance);
-    SDL_BlitSurface(affiche, NULL, ecran, &posivict);
-
-    if(fois == 1)
-    {
-         posivict.x = 300;
-          affiche = TTF_RenderText_Blended(police, "1",couleurbleulagon);
-         SDL_BlitSurface(affiche, NULL, ecran, &posivict);
-
+    TTF_Init();
+    SDL_Rect panel={18,452,644,80},inner={22,456,636,72};
+    SDL_FillRect(ecran,&panel,SDL_MapRGB(ecran->format,29,43,61));
+    SDL_FillRect(ecran,&inner,SDL_MapRGB(ecran->format,32,55,84));
+    SDL_Surface *medal=SDL_LoadBMP("sprites_mario_sokoban/medal.bmp");
+    if(medal){SDL_Rect at={30,458,0,0};SDL_BlitSurface(medal,NULL,ecran,&at);SDL_FreeSurface(medal);}
+    TTF_Font *font=TTF_OpenFont("NotoSans.ttf",27);
+    if(font){
+        posivict.x=110;posivict.y=476;
+        draw_game_text(ecran,font,"YOU WIN",posivict,SDL_Color{255,231,149});
+        char count[40];snprintf(count,sizeof(count),"NIVEAU %d TERMINE",fois);
+        posivict.x=270;draw_game_text(ecran,font,count,posivict,SDL_Color{250,239,205});
+        TTF_CloseFont(font);
     }
-    if(fois == 2)
-    {
-         posivict.x = 330;
-          affiche = TTF_RenderText_Blended(police, "2",couleurbleulagon);
-         SDL_BlitSurface(affiche, NULL, ecran, &posivict);
-
-    }
-    if(fois == 3)
-    {
-         posivict.x = 380;
-          affiche = TTF_RenderText_Blended(police, "3",couleurbleulagon);
-         SDL_BlitSurface(affiche, NULL, ecran, &posivict);
-
-    }
-    if(fois == 4)
-    {
-         posivict.x = 430;
-          affiche = TTF_RenderText_Blended(police, "4",couleurbleulagon);
-         SDL_BlitSurface(affiche, NULL, ecran, &posivict);
-
-    }
-    if(fois == 5)
-    {
-         posivict.x = 470;
-          affiche = TTF_RenderText_Blended(police, "5",couleurbleulagon);
-         SDL_BlitSurface(affiche, NULL, ecran, &posivict);
-
-    }
-    if(fois == 6)
-    {
-         posivict.x = 510;
-          affiche = TTF_RenderText_Blended(police, "6",couleurbleulagon);
-         SDL_BlitSurface(affiche, NULL, ecran, &posivict);
-
-    }
-
-
-    SDL_Flip(ecran);
-      TTF_CloseFont(police); /* Doit être avant TTF_Quit() */
-    TTF_Quit();//quitte la biblio texte
+    SDL_Flip(ecran);TTF_Quit();
 }
+
 void save(int niveau)
 {
     FILE*score =NULL;
@@ -2480,139 +2383,50 @@ void lecture(int niveau,int tableauniv[])
     {fscanf(fichier, " %d" , &tableauniv[i]);//(ou &)
     i++;
     }
+    fclose(fichier);
     }
 }
 
 int niveaucrea(SDL_Surface* ecran,SDL_Rect posiclic)
 {
-    TTF_Init();//démarrage de la bibliothèque texte
-
-    SDL_Color couleurindigo = {10, 206, 212};
-    SDL_Color couleurverte = {128,255,23};
-    SDL_Color couleurrouge = {255,0,0};
-    SDL_Color couleurviolette = {165,32,175};
-    SDL_Color couleurorange = {255,123,0};
-    SDL_Color couleurjaune = {255,233,0};
-    SDL_Color couleurvertepomme = {177,255,23};
-    SDL_Color couleurbleumarine = {0,0,255};
-    SDL_Color couleurblanche = {255,255,255};
-    SDL_Color couleurNoire = {0, 0, 0};
-    SDL_Color couleurbleusature = {132,255,255};
-    SDL_Color couleurbleuneutre = {0,204,255};
-    SDL_Color couleurvertecremeux = {136,204,0};
-    TTF_Font *police = NULL;
-
-    SDL_Event event;
-
-    police = TTF_OpenFont("NotoSans.ttf", 100);
-    SDL_Surface *texte = NULL;
-    SDL_Rect positexte;
-    SDL_Rect niceposition;
-niceposition.x = 0;
-niceposition.y = 0;
-    texte = SDL_LoadBMP ("sprites_mario_sokoban/garden.bmp");//image de fond
-    SDL_BlitSurface(texte, NULL, ecran, &niceposition);
-
-    texte = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");// flèche de retour
-    SDL_BlitSurface(texte , NULL, ecran, &niceposition );
-
-    positexte.x =120;
-    positexte.y = 50;
-    texte = TTF_RenderText_Shaded(police, " 1 ",couleurindigo,couleurbleumarine);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte);
-
-    positexte.x =285;
-    positexte.y = 50;
-    texte = TTF_RenderText_Shaded(police, " 2 ",couleurrouge,couleurjaune);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.x =450;
-    positexte.y = 50;
-    texte = TTF_RenderText_Shaded(police, " 3 ",couleurjaune,couleurrouge);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.x =120;
-    positexte.y = 250;
-    texte = TTF_RenderText_Shaded(police, " 4 ",couleurviolette,couleurvertepomme);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.x =285;
-    positexte.y = 250;
-    texte = TTF_RenderText_Shaded(police, " 5 ",couleurverte,couleurviolette);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.x =450;
-    positexte.y = 250;
-    texte = TTF_RenderText_Shaded(police, " 6 ",couleurblanche,couleurNoire);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.x =120;
-    positexte.y = 450;
-    texte = TTF_RenderText_Shaded(police, " 7 ",couleurorange,couleurbleusature);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.x =285;
-    positexte.y = 450;
-    texte = TTF_RenderText_Shaded(police, " 8 ",couleurblanche,couleurvertecremeux);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.x =450;
-    positexte.y = 450;
-    texte = TTF_RenderText_Shaded(police, " 9 ",couleurbleuneutre,couleurNoire);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    SDL_Flip(ecran);
-
-     int continuer = 1;
-   while (continuer)
-    {
-       SDL_WaitEvent(&event);
-     switch(event.type)
-    {
-        case SDL_QUIT:
-        return 0;
-         break;
-      case SDL_MOUSEBUTTONUP: /* Clic de la souris */
-      posiclic.x = event.button.x; /* change les coordonnées de posiclic*/
-      posiclic.y = event.button.y;
-      if(posiclic.x >= 0 && posiclic.x <= 68 && posiclic.y >= 0 && posiclic.y <= 68)
-      {return 10;
-      continuer=0;
-      }
-      if(posiclic.x >= 120 && posiclic.x <=273  && posiclic.y >= 50 && posiclic.y <= 126)
-    {return 1;continuer = 0;}
-    if(posiclic.x >= 285 && posiclic.x <= 438 && posiclic.y >= 50 && posiclic.y <= 126)
-    {return 2;continuer = 0;}
-    if(posiclic.x >= 450 && posiclic.x <= 603 && posiclic.y >= 50 && posiclic.y <= 126)
-    {return 3;continuer = 0;}
-    if(posiclic.x >= 120 && posiclic.x <= 273 && posiclic.y >= 250 && posiclic.y <=326 )
-    {return 4;continuer = 0;}
-    if(posiclic.x >= 285 && posiclic.x <= 438 && posiclic.y >= 250 && posiclic.y <=326 )
-    {return 5;continuer = 0;}
-    if(posiclic.x >= 450 && posiclic.x <= 603 && posiclic.y >= 250 && posiclic.y <=326 )
-    {return 6;continuer = 0;}
-    if(posiclic.x >= 120 && posiclic.x <= 273 && posiclic.y >= 450 && posiclic.y <=526 )
-    {return 7;continuer = 0;}
-    if(posiclic.x >= 285 && posiclic.x <= 438 && posiclic.y >= 450 && posiclic.y <=526 )
-    {return 8;continuer = 0;}
-    if(posiclic.x >= 450 && posiclic.x <= 603 && posiclic.y >= 450 && posiclic.y <=526 )
-    {return 9;continuer = 0;}
-
-
-      break;
-       }
-
+    TTF_Init();
+    SDL_Surface *background=SDL_LoadBMP("sprites_mario_sokoban/garden_detail.bmp");
+    if(background){SDL_Rect at={0,0,0,0};SDL_BlitSurface(background,NULL,ecran,&at);SDL_FreeSurface(background);}
+    SDL_Surface *back=SDL_LoadBMP("sprites_mario_sokoban/back.bmp");
+    if(back){SDL_Rect at={0,0,0,0};SDL_BlitSurface(back,NULL,ecran,&at);SDL_FreeSurface(back);}
+    const int cardX[3]={48,260,472}, cardY[3]={112,244,376};
+    TTF_Font *font=TTF_OpenFont("NotoSans.ttf",28);
+    if(font){
+        SDL_Rect title={202,44,0,0};
+        draw_game_text(ecran,font,"NIVEAUX PERSONNELS",title,SDL_Color{255,245,205});
+        for(int level=1;level<=9;++level){
+            int map[80]={0}; lecture(level,map);
+            int col=(level-1)%3,row=(level-1)/3;
+            SDL_Rect card={static_cast<Sint16>(cardX[col]),static_cast<Sint16>(cardY[row]),160,112};
+            draw_ui_button(ecran,font," ",card);
+            draw_level_thumbnail(ecran,map,cardX[col]+8,cardY[row]+8,144,66);
+            char label[24]; snprintf(label,sizeof(label),"NIVEAU %d",level);
+            SDL_Rect labelAt={static_cast<Sint16>(cardX[col]+15),static_cast<Sint16>(cardY[row]+79),0,0};
+            draw_game_text(ecran,font,label,labelAt,SDL_Color{255,245,205});
+        }
+        TTF_CloseFont(font);
     }
-    return 0;
-
-
-
-
-    SDL_FreeSurface(texte);
-     TTF_CloseFont(police); /* Doit être avant TTF_Quit() */
-    TTF_Quit();//quitte la biblio texte
-
+    SDL_Flip(ecran);
+    SDL_Event event;
+    for(;;){
+        SDL_WaitEvent(&event);
+        if(event.type==SDL_QUIT){TTF_Quit();return 0;}
+        if(event.type!=SDL_MOUSEBUTTONUP)continue;
+        posiclic.x=event.button.x;posiclic.y=event.button.y;
+        if(posiclic.x<=68&&posiclic.y<=68){TTF_Quit();return 10;}
+        for(int level=1;level<=9;++level){
+            int col=(level-1)%3,row=(level-1)/3;
+            if(posiclic.x>=cardX[col]&&posiclic.x<=cardX[col]+160&&
+               posiclic.y>=cardY[row]&&posiclic.y<=cardY[row]+112){TTF_Quit();return level;}
+        }
+    }
 }
+
 int tobesur(SDL_Surface* ecran,SDL_Rect posiclic)
 {
     TTF_Init();//démarrage de la bibliothèque texte
@@ -2776,12 +2590,9 @@ fois=0;
          case SDL_KEYDOWN:
          if(event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_DOWN
             || event.key.keysym.sym == SDLK_RIGHT || event.key.keysym.sym == SDLK_LEFT)
-        {mario = SDL_CreateRGBSurface(SDL_HWSURFACE, 68, 68, 16, 0, 0,0, 0);//on charge un carré blanc à l'ancien emplacement de mario
-    SDL_FillRect(mario, NULL, SDL_MapRGB(ecran->format, 255,255,255));//cela permet d'éviter de se servir à chaque boucle de la fonction load(ce qui fait moche et ramer)
-    SDL_BlitSurface(mario, NULL, ecran, &posimario); /* On
-place mario à sa nouvelle position */
-SDL_Flip(ecran); /* On met à jour l'affichage */
-}
+        {
+         redraw_board_cell(ecran, tableau1[cases(posimario)-1], posimario);
+     }
          if(event.key.keysym.sym == SDLK_UP)
      {
 
@@ -2995,114 +2806,33 @@ return 0;
 }
 int affonlyvictyouinon(SDL_Surface* ecran,SDL_Rect posiclic)
 {
-    TTF_Init();//démarrage de la bibliothèque texte
-    SDL_Color couleurindigo = {10, 206, 212};
-    SDL_Color couleurrouge = {255,0,0};
-    SDL_Color couleurviolette = {165,32,175};
-    SDL_Color couleurorange = {255,123,0};
-    SDL_Color couleurrose = {255,81,255};
-    SDL_Color couleurjaune = {255,233,0};
-    SDL_Color couleurvertepomme = {177,255,23};
-    SDL_Color couleurbleumarine = {0,0,255};
-    SDL_Color couleurNoire = {0, 0, 0};
-
-
-    TTF_Font *police = NULL;
-    SDL_Surface *texte = NULL;
-    SDL_Rect positexte;
-    positexte.x = 0;
-    positexte.y = 0;
-     police = TTF_OpenFont("NotoSans.ttf", 155);
-
-     texte =SDL_LoadBMP ("sprites_mario_sokoban/garden.bmp");
-    SDL_BlitSurface(texte , NULL, ecran, &positexte );
+    TTF_Init();
+    SDL_Surface *background=SDL_LoadBMP("sprites_mario_sokoban/garden_detail.bmp");
+    if(background){SDL_Rect origin={0,0,0,0};SDL_BlitSurface(background,NULL,ecran,&origin);SDL_FreeSurface(background);}
+    SDL_Surface *medal=SDL_LoadBMP("sprites_mario_sokoban/medal.bmp");
+    if(medal){SDL_Rect at={306,105,0,0};SDL_BlitSurface(medal,NULL,ecran,&at);SDL_FreeSurface(medal);}
+    TTF_Font *font=TTF_OpenFont("NotoSans.ttf",52);
+    SDL_Rect title={232,35,0,0};
+    draw_game_text(ecran,font,"YOU WIN!",title,SDL_Color{255,231,149});
+    if(font)TTF_CloseFont(font);
+    font=TTF_OpenFont("NotoSans.ttf",44);
+    SDL_Rect prompt={160,205,0,0};
+    draw_game_text(ecran,font,"VEUX-TU REJOUER ?",prompt,SDL_Color{250,239,205});
+    draw_ui_button(ecran,font,"REJOUER",SDL_Rect{20,250,277,70});
+    draw_ui_button(ecran,font,"MENU",SDL_Rect{320,250,300,70});
+    if(font)TTF_CloseFont(font);
     SDL_Flip(ecran);
-
-     positexte.x = 0;
-    positexte.y = 30;
-    texte = TTF_RenderText_Blended(police, "V",couleurrouge);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 110;
-    texte = TTF_RenderText_Blended(police, "I",couleurrose);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 150;
-    texte = TTF_RenderText_Blended(police, "C",couleurorange);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 235;
-    texte = TTF_RenderText_Blended(police, "T",couleurjaune);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 330;
-    texte = TTF_RenderText_Blended(police, "O",couleurvertepomme);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 420;
-    texte = TTF_RenderText_Blended(police, "I",couleurindigo);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 480;
-    texte = TTF_RenderText_Blended(police, "R",couleurbleumarine);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    positexte.x = 580;
-    texte = TTF_RenderText_Blended(police, "E",couleurviolette);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    TTF_CloseFont(police);
-
-    police = TTF_OpenFont("NotoSans.ttf", 62);
-    positexte.x = 0;
-    positexte.y = 175;
-    texte = TTF_RenderText_Blended(police, "Veux-tu rejouer?",couleurrouge);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.x =20;
-    positexte.y = 250;
-    texte = TTF_RenderText_Shaded(police, "OUI",couleurNoire,couleurindigo);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.x =320;
-    positexte.y = 250;
-    texte = TTF_RenderText_Shaded(police, "NON",couleurNoire,couleurindigo);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    SDL_Flip(ecran);
-SDL_Event event;
-     int continuer = 1;
-   while (continuer)
-    {
-       SDL_WaitEvent(&event);
-     switch(event.type)
-    {
-        case SDL_QUIT:
-        return 4;
-         break;
-      case SDL_MOUSEBUTTONUP: /* Clic de la souris */
-      posiclic.x = event.button.x; /* change les coordonnées de posiclic*/
-      posiclic.y = event.button.y;
-
-     if (posiclic.x >= 20 && posiclic.x <= 297 && posiclic.y >= 250 && posiclic.y <= 320) // grâce aux  coordonnées de posiclic
-       {
-           return 1;
-           continuer = 0;
-       }
-       else if(posiclic.x >= 320 && posiclic.x <= 620 && posiclic.y >= 250 && posiclic.y <=320)
-       {
-           return 0;
-           continuer = 0;
-       }
-
-
-      break;
-       }
-
+    SDL_Event event;
+    for(;;){
+        SDL_WaitEvent(&event);
+        if(event.type==SDL_QUIT){TTF_Quit();return 4;}
+        if(event.type==SDL_MOUSEBUTTONUP){
+            if(event.button.x>=20&&event.button.x<=297&&event.button.y>=250&&event.button.y<=320){TTF_Quit();return 1;}
+            if(event.button.x>=320&&event.button.x<=620&&event.button.y>=250&&event.button.y<=320){TTF_Quit();return 0;}
+        }
     }
-    return 0;
-
-
-
-
-    SDL_FreeSurface(texte);
-    TTF_CloseFont(police); /* Doit être avant TTF_Quit() */
-    TTF_Quit();//quitte la biblio texte
-
-
 }
+
 void affefface(SDL_Surface* ecran)
 {
     TTF_Init();//démarrage de la bibliothèque texte
