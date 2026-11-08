@@ -6,6 +6,14 @@ import math
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "sprites_mario_sokoban"
 OUT.mkdir(parents=True, exist_ok=True)
+for obsolete in (
+    "caisse.jpg", "caisse_ok.jpg", "caissecrea.jpg", "creation.jpg", "dragon.jpg",
+    "filesave.png", "gomme.bmp", "jouer.png", "mario_bas.gif", "mario_droite.gif",
+    "mario_gauche.gif", "mario_haut.gif", "mariocrea.gif", "menu1.png", "mur.jpg",
+    "murcrea.jpg", "nice.bmp", "objectif.png", "objectifcrea.png", "replay.bmp",
+    "retour.bmp", "retour.gif", "retour.png",
+):
+    (OUT / obsolete).unlink(missing_ok=True)
 
 PALETTE = {
     "ink": (29, 43, 61), "navy": (32, 55, 84), "sky": (130, 204, 218),
@@ -86,18 +94,17 @@ def backdrop(size, title=False):
     return im
 
 def save(name, image):
-    formats = {".png": "PNG", ".bmp": "BMP", ".gif": "GIF", ".jpg": "JPEG", ".jpeg": "JPEG"}
-    fmt = formats[Path(name).suffix.lower()]
-    if fmt == "JPEG": image = image.convert("RGB")
-    image.save(OUT / name, format=fmt, optimize=(fmt == "PNG"), quality=94)
+    # SDL 1.2's built-in loader reads BMP only, so every asset uses real BMP
+    # data and a .bmp filename. SDL3 also supports this format natively.
+    image.save(OUT / name, format="BMP")
 
 for filename, kind in {
-    "caisse.jpg": "crate", "caisse_ok.jpg": "target", "caissecrea.jpg": "crate",
-    "mur.jpg": "wall", "murcrea.jpg": "wall", "objectif.png": "target",
-    "objectifcrea.png": "target", "mario_bas.gif": "keeper", "mario_haut.gif": "keeper",
-    "mario_gauche.gif": "keeper", "mario_droite.gif": "keeper", "mariocrea.gif": "keeper",
-    "replay.bmp": "replay", "retour.bmp": "back", "retour.gif": "back", "retour.png": "back",
-    "filesave.png": "save", "gomme.bmp": "eraser", "jouer.png": "button",
+    "crate.bmp": "crate", "crate_target.bmp": "target", "crate_editor.bmp": "crate",
+    "wall.bmp": "wall", "wall_editor.bmp": "wall", "target.bmp": "target",
+    "target_editor.bmp": "target", "keeper_down.bmp": "keeper", "keeper_up.bmp": "keeper",
+    "keeper_left.bmp": "keeper", "keeper_right.bmp": "keeper", "keeper_editor.bmp": "keeper",
+    "retry.bmp": "replay", "back.bmp": "back", "save.bmp": "save",
+    "eraser.bmp": "eraser", "play.bmp": "button",
 }.items():
     save(filename, tile(kind))
 
@@ -105,7 +112,7 @@ for filename, kind in {
 tile("crate", (32, 32)).save(ROOT / "caisse.bmp", format="BMP")
 tile("crate", (32, 32)).save(ROOT / "caisse.ico", format="ICO")
 
-for filename in ("menu1.png", "nice.bmp", "creation.jpg", "dragon.jpg"):
+for filename in ("menu.bmp", "garden.bmp", "editor.bmp", "garden_detail.bmp"):
     # Preserve the legacy window dimensions while replacing their artwork.
     old = OUT / filename
     try:

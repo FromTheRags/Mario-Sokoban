@@ -8,9 +8,8 @@ the old artwork and fonts were not carried into the source history.
 
 - All images used by the game were regenerated as original garden-themed
   pixel art by `tools/generate_assets.py`; they are dedicated under CC0 1.0.
-- Noto Sans replaced the undocumented typefaces; its SIL Open Font License is
-  included in `NotoSans-OFL.txt`.
-- A single font file is shared throughout the source.
+- The SDL 1.2 build uses an original 5x7 bitmap typeface in `bitmap_font.hpp`;
+  the SDL3 branch uses the included OFL-licensed Noto Sans font.
 - The original Photoshop files and unused icon were excluded.
 - The source code and the product name were not rewritten as part of this
   resource audit.

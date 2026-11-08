@@ -2,17 +2,16 @@
 
 ## SDL 1.2 runtime
 
-The legacy build dynamically links against the upstream SDL 1.2 runtime and
-SDL_image / SDL_ttf add-ons supplied by the build runner. The Linux CI artifact
-bundles the SDL shared libraries beside the executable. SDL 1.2 is licensed
-under GNU LGPL 2.1; see the upstream [SDL 1.2 source and license](https://github.com/libsdl-org/SDL-1.2).
-The license text is included in `SDL-1.2-LGPL-2.1.txt`, and users can replace
-the shared library in the Linux artifact.
+The SDL 1.2 source is vendored in `third_party/SDL-1.2` from upstream commit
+`81490298a02fe6806c05ac7b5afde7d88fcc7bf9`. SDL 1.2 is licensed under GNU
+LGPL 2.1; its license text is included in `SDL-1.2-LGPL-2.1.txt`. Windows
+builds compile that source into a replaceable `SDL.dll`; Linux CI dynamically
+links SDL 1.2 and bundles its runtime beside the executable.
 
-SDL_image and SDL_ttf are distributed under the zlib license. Their sources
-and notices are available from [SDL_image](https://github.com/libsdl-org/SDL_image)
-and [SDL_ttf](https://github.com/libsdl-org/SDL_ttf); their license texts are
-included as `SDL-image-zlib.txt` and `SDL-ttf-zlib.txt`.
+The SDL 1.2 branch no longer links SDL_image or SDL_ttf. It loads generated
+BMP artwork with SDL 1.2 and draws text with an original 5x7 bitmap typeface.
+The SDL3 branch uses SDL3_image and SDL3_ttf; their zlib notices are included
+as `SDL-image-zlib.txt` and `SDL-ttf-zlib.txt`.
 
 ## Noto Sans
 

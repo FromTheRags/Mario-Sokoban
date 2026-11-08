@@ -3,13 +3,8 @@
 #else
     #include <stdlib.h>
 #endif
-#ifdef __APPLE__
-#include <SDL/SDL.h>
-#else
 #include <SDL.h>
-#endif
-#include <SDL/SDL_image.h>
-#include <SDL/SDL_ttf.h>
+#include "bitmap_font.hpp"
 #include <string.h>
 //code source retouché: rechercher "//bug résolu :" pour voir les retouches
 void pause();
@@ -117,7 +112,7 @@ while(finpartie < 4 && quit == 0)
     SDL_FillRect(rectangle, NULL, SDL_MapRGB(ecran->format, 0, 0, 0));//couleur du rectangle
     SDL_BlitSurface(rectangle, NULL, ecran, &position);//colle le rectangle à l'écran(0 parce que l'on ne sert pas de ces paramètres
 
-    image_demarrage = IMG_Load ("sprites_mario_sokoban/menu1.png");
+    image_demarrage = SDL_LoadBMP ("sprites_mario_sokoban/menu.bmp");
     SDL_BlitSurface(image_demarrage , NULL, ecran, &pimage_demarrage );
     police = TTF_OpenFont("NotoSans.ttf", 40);
     positexte.x = 10;
@@ -181,7 +176,7 @@ while(finpartie < 4 && quit == 0)
      endwhile = 0;
      finpartie=2;
   choixniv(ecran);
-    retour = IMG_Load ("sprites_mario_sokoban/retour.bmp");
+    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
     SDL_BlitSurface(retour , NULL, ecran, &posiretour );
     SDL_Flip(ecran);
 
@@ -359,11 +354,11 @@ while(finpartie < 4 && quit == 0)
     }
     endwhile = 0;
     load(ecran,niveau,tableau1);
-    retour = IMG_Load ("sprites_mario_sokoban/retour.gif");
+    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
     SDL_BlitSurface(retour , NULL, ecran, &posiretour );
 
     posireplay.x=9*68;
-    replay = IMG_Load ("sprites_mario_sokoban/replay.bmp");
+    replay = SDL_LoadBMP ("sprites_mario_sokoban/retry.bmp");
     SDL_BlitSurface(replay , NULL, ecran, &posireplay );
     SDL_Flip(ecran);
 
@@ -428,7 +423,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
 
          posimario.y -= 68;
 
-     mario = IMG_Load("sprites_mario_sokoban/mario_haut.gif");
+     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_up.bmp");
       if(verif(niveau,posimario,tableau1,1) == 1 )
            {
                posimario.y += 68;
@@ -440,7 +435,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                 tableau1[cases(posimario)-1] = 3;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.y += 68;
             }
@@ -451,7 +446,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                 tableau1[cases(posimario)-1] = 6;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse_ok.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate_target.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.y += 68;
             }
@@ -461,7 +456,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
      {
 
          posimario.y += 68;
-     mario = IMG_Load("sprites_mario_sokoban/mario_bas.gif");
+     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_down.bmp");
       if(verif(niveau,posimario,tableau1,4) == 1)
            {
                posimario.y -= 68;
@@ -473,7 +468,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                 tableau1[cases(posimario)-1] = 3;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.y -= 68;
             }
@@ -484,7 +479,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                 tableau1[cases(posimario)-1] = 6;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse_ok.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate_target.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.y -= 68;
             }
@@ -504,7 +499,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                 tableau1[cases(posimario)-1] = 3;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.x -= 68;
             }
@@ -515,11 +510,11 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                 tableau1[cases(posimario)-1] = 6;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse_ok.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate_target.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.x -= 68;
             }
-     mario = IMG_Load("sprites_mario_sokoban/mario_droite.gif");
+     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_right.bmp");
 
      }
      if(event.key.keysym.sym == SDLK_LEFT)
@@ -537,7 +532,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                tableau1[cases(posimario)-1] = 3;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.x += 68;
            }
@@ -548,11 +543,11 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                tableau1[cases(posimario)-1] = 6;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse_ok.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate_target.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.x += 68;
            }
-     mario = IMG_Load("sprites_mario_sokoban/mario_gauche.gif");
+     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_left.bmp");
      }
          break;
          case SDL_MOUSEBUTTONUP: /* Clic de la souris */
@@ -573,12 +568,12 @@ if(posimario.y == 0)
 {
     if(posimario.x == 68*8)
     {
-    replay = IMG_Load ("sprites_mario_sokoban/replay.bmp");
+    replay = SDL_LoadBMP ("sprites_mario_sokoban/retry.bmp");
     SDL_BlitSurface(replay , NULL, ecran, &posireplay );
     }
     if(posimario.x == 68)
     {
-    retour = IMG_Load ("sprites_mario_sokoban/retour.gif");
+    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
     SDL_BlitSurface(retour , NULL, ecran, &posiretour );
     }
 }
@@ -586,12 +581,12 @@ if(posimario.y == 68)
 {
     if(posimario.x == 0)
     {
-    retour = IMG_Load ("sprites_mario_sokoban/retour.gif");
+    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
     SDL_BlitSurface(retour , NULL, ecran, &posiretour );
     }
     if(posimario.x == 68*9)
     {
-    replay = IMG_Load ("sprites_mario_sokoban/replay.bmp");
+    replay = SDL_LoadBMP ("sprites_mario_sokoban/retry.bmp");
     SDL_BlitSurface(replay , NULL, ecran, &posireplay );
     }
 }
@@ -696,9 +691,9 @@ do
         sauteif = 0;
         creationend = 0;
 
-   ecran_partie= IMG_Load ("sprites_mario_sokoban/creation.jpg");
+   ecran_partie= SDL_LoadBMP ("sprites_mario_sokoban/editor.bmp");
     SDL_BlitSurface(ecran_partie , NULL, ecran, &posi_partie );
-    retour = IMG_Load ("sprites_mario_sokoban/retour.png");
+    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
     SDL_BlitSurface(retour , NULL, ecran, &posiretour );
     police = TTF_OpenFont("NotoSans.ttf", 60);
     positexte.x =210;
@@ -925,35 +920,35 @@ do
          load(ecran,clicniv,tableaucrea);
      }
 
-    retour = IMG_Load ("sprites_mario_sokoban/retour.gif");
+    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
     SDL_BlitSurface(retour , NULL, ecran, &posiretour );
 
     posireplay.x=9*68;
-    replay = IMG_Load ("sprites_mario_sokoban/replay.bmp");
+    replay = SDL_LoadBMP ("sprites_mario_sokoban/retry.bmp");
     SDL_BlitSurface(replay , NULL, ecran, &posireplay );
 
     posicolleimagecrea.x =68;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/filesave.png");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/save.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posicolleimagecrea );
 
     posicolleimagecrea.x =68*2;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/caissecrea.jpg");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/crate_editor.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posicolleimagecrea );
 
     posicolleimagecrea.x =68*3;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/mariocrea.gif");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/keeper_editor.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posicolleimagecrea );
 
     posicolleimagecrea.x =68*4;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/murcrea.jpg");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/wall_editor.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posicolleimagecrea );
 
     posicolleimagecrea.x =68*5;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/objectifcrea.png");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/target_editor.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posicolleimagecrea );
 
     posicolleimagecrea.x =68*6;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/gomme.bmp");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/eraser.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posicolleimagecrea );
 
     //plus loin après les lignes blit du bouton jouer
@@ -998,7 +993,7 @@ do
     }
 
     posicolleimagecrea.x =68*7;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/jouer.png");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/play.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posicolleimagecrea );
      if(level == 9)
      {
@@ -1179,7 +1174,7 @@ do
     {
     if(cursus == 2)
     {tableaucrea[cases(posiclic)-1] =3;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/caisse.jpg");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/crate.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
     }
     if(cursus == 3)
@@ -1195,18 +1190,18 @@ do
      }
      if(pass <100)
     {tableaucrea[cases(posiclic)-1] =5;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/mario_bas.gif");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/keeper_down.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
     }
     }
     if(cursus == 4)
     {tableaucrea[cases(posiclic)-1] =1;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/mur.jpg");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/wall.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
     }
     if(cursus == 5)
     {tableaucrea[cases(posiclic)-1] =4;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/objectif.png");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/target.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
     }
     if(cursus == 6)
@@ -1223,7 +1218,7 @@ do
         if(cursus == 2)
     {tableaucrea[cases(posiclic)-1] =3;
     posiclic.y +=34;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/caissecrea.jpg");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/crate_editor.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
     posiclic.y -=34;
     }
@@ -1241,7 +1236,7 @@ do
      if(pass <100)
     {tableaucrea[cases(posiclic)-1] =5;
     posiclic.y +=34;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/mariocrea.gif");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/keeper_editor.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
     posiclic.y -=34;
     }
@@ -1249,14 +1244,14 @@ do
     if(cursus == 4)
     {tableaucrea[cases(posiclic)-1] =1;
     posiclic.y +=34;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/murcrea.jpg");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/wall_editor.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
     posiclic.y -=34;
     }
     if(cursus == 5)
     {tableaucrea[cases(posiclic)-1] =4;
     posiclic.y +=34;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/objectifcrea.png");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/target_editor.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
     posiclic.y -=34;
     }
@@ -1307,7 +1302,7 @@ arrete = 0;
 
     }
     posicolleimagecrea.x =68*7;
-    colleimagecrea= IMG_Load ("sprites_mario_sokoban/jouer.png");
+    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/play.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posicolleimagecrea );
 
 
@@ -1396,7 +1391,7 @@ dposition.y = 0;
 
     police = TTF_OpenFont("NotoSans.ttf", 62);
 
-    dragon = IMG_Load ("sprites_mario_sokoban/dragon.jpg");
+    dragon = SDL_LoadBMP ("sprites_mario_sokoban/garden_detail.bmp");
     SDL_BlitSurface(dragon , NULL, ecran, &dposition );
     SDL_Flip(ecran);
     positexte.x = 10;
@@ -1539,7 +1534,7 @@ void load(SDL_Surface *ecran, int niveau,int tableau1[])
                     if( a == 1)
                     {
 
-                        carre = IMG_Load ("sprites_mario_sokoban/mur.jpg");
+                        carre = SDL_LoadBMP ("sprites_mario_sokoban/wall.bmp");
                          SDL_BlitSurface(carre , NULL, ecran, &posicarre );
 
 
@@ -1548,7 +1543,7 @@ void load(SDL_Surface *ecran, int niveau,int tableau1[])
                     if( a == 3)
                     {
 
-                        carre = IMG_Load ("sprites_mario_sokoban/caisse.jpg");
+                        carre = SDL_LoadBMP ("sprites_mario_sokoban/crate.bmp");
                          SDL_BlitSurface(carre , NULL, ecran, &posicarre );
 
 
@@ -1556,7 +1551,7 @@ void load(SDL_Surface *ecran, int niveau,int tableau1[])
                     if( a == 4)
                     {
 
-                        carre = IMG_Load ("sprites_mario_sokoban/objectif.png");
+                        carre = SDL_LoadBMP ("sprites_mario_sokoban/target.bmp");
                          SDL_BlitSurface(carre , NULL, ecran, &posicarre );
 
 
@@ -1564,7 +1559,7 @@ void load(SDL_Surface *ecran, int niveau,int tableau1[])
                     if( a == 5)
                     {
 
-                        carre = IMG_Load ("sprites_mario_sokoban/mario_haut.gif");
+                        carre = SDL_LoadBMP ("sprites_mario_sokoban/keeper_up.bmp");
                          SDL_BlitSurface(carre , NULL, ecran, &posicarre );
 
 
@@ -2498,10 +2493,10 @@ int niveaucrea(SDL_Surface* ecran,SDL_Rect posiclic)
     SDL_Rect niceposition;
 niceposition.x = 0;
 niceposition.y = 0;
-    texte = IMG_Load ("sprites_mario_sokoban/nice.bmp");//image de fond
+    texte = SDL_LoadBMP ("sprites_mario_sokoban/garden.bmp");//image de fond
     SDL_BlitSurface(texte, NULL, ecran, &niceposition);
 
-    texte = IMG_Load ("sprites_mario_sokoban/retour.png");// flèche de retour
+    texte = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");// flèche de retour
     SDL_BlitSurface(texte , NULL, ecran, &niceposition );
 
     positexte.x =120;
@@ -2737,11 +2732,11 @@ int play(int tableau1[],SDL_Surface* caisse,SDL_Rect posicaisse,SDL_Surface* ecr
 
     load(ecran,niveau,tableaufixe);
 
-    retour = IMG_Load ("sprites_mario_sokoban/retour.gif");
+    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
     SDL_BlitSurface(retour , NULL, ecran, &posiretour );
 
     posireplay.x=9*68;
-    replay = IMG_Load ("sprites_mario_sokoban/replay.bmp");
+    replay = SDL_LoadBMP ("sprites_mario_sokoban/retry.bmp");
     SDL_BlitSurface(replay , NULL, ecran, &posireplay );
     SDL_Flip(ecran);
 
@@ -2775,7 +2770,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
 
          posimario.y -= 68;
 
-     mario = IMG_Load("sprites_mario_sokoban/mario_haut.gif");
+     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_up.bmp");
       if(verif(niveau,posimario,tableau1,1) == 1 )
            {
                posimario.y += 68;
@@ -2787,7 +2782,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                 tableau1[cases(posimario)-1] = 3;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.y += 68;
             }
@@ -2798,7 +2793,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                 tableau1[cases(posimario)-1] = 6;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse_ok.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate_target.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.y += 68;
             }
@@ -2808,7 +2803,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
      {
 
          posimario.y += 68;
-     mario = IMG_Load("sprites_mario_sokoban/mario_bas.gif");
+     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_down.bmp");
       if(verif(niveau,posimario,tableau1,4) == 1)
            {
                posimario.y -= 68;
@@ -2820,7 +2815,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                 tableau1[cases(posimario)-1] = 3;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.y -= 68;
             }
@@ -2831,7 +2826,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                 tableau1[cases(posimario)-1] = 6;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse_ok.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate_target.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.y -= 68;
             }
@@ -2851,7 +2846,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                 tableau1[cases(posimario)-1] = 3;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.x -= 68;
             }
@@ -2862,11 +2857,11 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                 tableau1[cases(posimario)-1] = 6;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse_ok.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate_target.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.x -= 68;
             }
-     mario = IMG_Load("sprites_mario_sokoban/mario_droite.gif");
+     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_right.bmp");
 
      }
      if(event.key.keysym.sym == SDLK_LEFT)
@@ -2884,7 +2879,7 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                tableau1[cases(posimario)-1] = 3;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.x += 68;
            }
@@ -2895,11 +2890,11 @@ SDL_Flip(ecran); /* On met à jour l'affichage */
                tableau1[cases(posimario)-1] = 6;
                 posicaisse.y=posimario.y;
                 posicaisse.x=posimario.x;
-                caisse = IMG_Load("sprites_mario_sokoban/caisse_ok.jpg");
+                caisse = SDL_LoadBMP("sprites_mario_sokoban/crate_target.bmp");
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.x += 68;
            }
-     mario = IMG_Load("sprites_mario_sokoban/mario_gauche.gif");
+     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_left.bmp");
      }
          break;
          case SDL_MOUSEBUTTONUP: /* Clic de la souris */
@@ -2923,12 +2918,12 @@ if(posimario.y == 0)
 {
     if(posimario.x == 68*8)
     {
-    replay = IMG_Load ("sprites_mario_sokoban/replay.bmp");
+    replay = SDL_LoadBMP ("sprites_mario_sokoban/retry.bmp");
     SDL_BlitSurface(replay , NULL, ecran, &posireplay );
     }
     if(posimario.x == 68)
     {
-    retour = IMG_Load ("sprites_mario_sokoban/retour.gif");
+    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
     SDL_BlitSurface(retour , NULL, ecran, &posiretour );
     }
 }
@@ -2936,12 +2931,12 @@ if(posimario.y == 68)
 {
     if(posimario.x == 0)
     {
-    retour = IMG_Load ("sprites_mario_sokoban/retour.gif");
+    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
     SDL_BlitSurface(retour , NULL, ecran, &posiretour );
     }
     if(posimario.x == 68*9)
     {
-    replay = IMG_Load ("sprites_mario_sokoban/replay.bmp");
+    replay = SDL_LoadBMP ("sprites_mario_sokoban/retry.bmp");
     SDL_BlitSurface(replay , NULL, ecran, &posireplay );
     }
 }
@@ -3002,7 +2997,7 @@ int affonlyvictyouinon(SDL_Surface* ecran,SDL_Rect posiclic)
     positexte.y = 0;
      police = TTF_OpenFont("NotoSans.ttf", 155);
 
-     texte =IMG_Load ("sprites_mario_sokoban/nice.bmp");
+     texte =SDL_LoadBMP ("sprites_mario_sokoban/garden.bmp");
     SDL_BlitSurface(texte , NULL, ecran, &positexte );
     SDL_Flip(ecran);
 
@@ -3136,11 +3131,11 @@ int affcomplet(SDL_Surface* ecran,SDL_Rect posiclic)
 
     positexte.x = 0;
     positexte.y = 0;
-    texte = IMG_Load("sprites_mario_sokoban/retour.gif");
+    texte = SDL_LoadBMP("sprites_mario_sokoban/back.bmp");
     SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
 
     positexte.x = 68*9;
-    texte = IMG_Load("sprites_mario_sokoban/replay.bmp");
+    texte = SDL_LoadBMP("sprites_mario_sokoban/retry.bmp");
     SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
     SDL_Flip(ecran);
 
