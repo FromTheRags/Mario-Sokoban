@@ -7,12 +7,17 @@ et dédiés au domaine public (CC0 1.0).
 
 ## Build avec CMake et CLion
 
-Installez SDL 3 et SDL_ttf 3 avec leurs paquets CMake, puis configurez avec :
+Sous Windows avec le compilateur MinGW de CLion, configurez normalement avec :
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
 ```
+
+Si SDL 3 ou SDL_ttf 3 ne sont pas installés, CMake télécharge leurs SDK MinGW
+officiels dans le dossier de build au premier configure. Une connexion Internet
+est alors nécessaire; les DLL sont ensuite copiées avec l’exécutable.
+Sur les autres systèmes, installez les paquets de développement SDL 3 et SDL_ttf 3.
 
 L’exécutable et les ressources sont copiés dans `build/package`. Pour une
 compilation sur Ubuntu via GitHub Actions, la CI installe les dernières versions
