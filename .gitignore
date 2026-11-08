@@ -1,0 +1,10 @@
+/build/
+/bin/
+/obj/
+*.exe
+*.dll
+*.layout
+*.depend
+*.cbp
+*.iss
+setup_*.exe
