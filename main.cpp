@@ -6,6 +6,7 @@
 #include <SDL.h>
 #include "bitmap_font.hpp"
 #include <string.h>
+#include <string>
 //code source retouché: rechercher "//bug résolu :" pour voir les retouches
 void pause();
 void enregistreniv(int tableau[],int niveaufichier,int eff);
@@ -28,6 +29,7 @@ int play(int tableau1[],SDL_Surface* caisse,SDL_Rect posicaisse,SDL_Surface* ecr
 int affonlyvictyouinon(SDL_Surface* ecran,SDL_Rect posiclic);
 void affefface(SDL_Surface* ecran);
 int affcomplet(SDL_Surface* ecran,SDL_Rect posiclic);
+void draw_ui_button(SDL_Surface* ecran, TTF_Font* font, const char* label, SDL_Rect bounds);
 
 int main ( int argc, char* argv[] )
 {
@@ -1012,6 +1014,19 @@ do
 
     }
 
+    // Redraw the complete editor toolbar after the grid so every tool remains in front.
+    const char *toolbar[] = {"back.bmp", "save.bmp", "crate_editor.bmp", "keeper_editor.bmp",
+        "wall_editor.bmp", "target_editor.bmp", "eraser.bmp", "play.bmp", "retry.bmp"};
+    const int toolbarX[] = {0, 68, 136, 204, 272, 340, 408, 476, 612};
+    for (int tool = 0; tool < 9; ++tool) {
+        SDL_Surface *icon = SDL_LoadBMP((std::string("sprites_mario_sokoban/") + toolbar[tool]).c_str());
+        if (icon) {
+            SDL_Rect iconPos = {static_cast<Sint16>(toolbarX[tool]), 0, 0, 0};
+            SDL_BlitSurface(icon, NULL, ecran, &iconPos);
+            SDL_FreeSurface(icon);
+        }
+    }
+
     posicolleimagecrea.x =68*7;
     colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/play.bmp");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posicolleimagecrea );
@@ -1362,12 +1377,38 @@ nombfois++;
         SDL_FreeSurface(lignes[net]);
         net++;
     }
-    SDL_Quit();//quitte la SDL
-
-  return EXIT_SUCCESS;
+#if defined(_WIN32)
+    // SDL 1.2's x64 Windows shutdown path can call stale 32-bit atexit hooks.
+    // End the process directly after releasing game-owned surfaces.
+    std::_Exit(EXIT_SUCCESS);
+#else
+    SDL_Quit();
+    return EXIT_SUCCESS;
+#endif
 
 
 }
+void draw_ui_button(SDL_Surface* ecran, TTF_Font* font, const char* label, SDL_Rect bounds)
+{
+    if (!ecran || !font) return;
+    SDL_Rect outer = bounds;
+    SDL_FillRect(ecran, &outer, SDL_MapRGB(ecran->format, 29, 43, 61));
+    SDL_Rect face = {static_cast<Sint16>(bounds.x + 3), static_cast<Sint16>(bounds.y + 3),
+                     static_cast<Uint16>(bounds.w - 6), static_cast<Uint16>(bounds.h - 6)};
+    SDL_FillRect(ecran, &face, SDL_MapRGB(ecran->format, 32, 55, 84));
+    SDL_Rect highlight = {static_cast<Sint16>(bounds.x + 7), static_cast<Sint16>(bounds.y + 6),
+                          static_cast<Uint16>(bounds.w - 14), 3};
+    SDL_FillRect(ecran, &highlight, SDL_MapRGB(ecran->format, 147, 190, 105));
+    SDL_Color ink = {250, 239, 205};
+    SDL_Surface *text = TTF_RenderText_Blended(font, label, ink);
+    if (text) {
+        SDL_Rect at = {static_cast<Sint16>(bounds.x + (bounds.w - text->w) / 2),
+                       static_cast<Sint16>(bounds.y + (bounds.h - text->h) / 2), 0, 0};
+        SDL_BlitSurface(text, NULL, ecran, &at);
+        SDL_FreeSurface(text);
+    }
+}
+
 void pause()
 {
     int continuer = 1;
@@ -1384,91 +1425,34 @@ void pause()
 }
 void choixniv(SDL_Surface* ecran)
 {
-
-    TTF_Init();//démarrage de la bibliothèque texte
-    SDL_Surface *dragon = NULL;
-
-
-    SDL_Color couleurindigo = {10, 206, 212};
-    SDL_Color couleurverte = {128,255,23};
-    SDL_Color couleurrouge = {255,0,0};
-    SDL_Color couleurviolette = {165,32,175};
-    SDL_Color couleurorange = {255,123,0};
-    SDL_Color couleurjaune = {255,233,0};
-    SDL_Color couleurvertepomme = {177,255,23};
-    SDL_Color couleurbleumarine = {0,0,255};
-    SDL_Color couleurblanche = {255,255,255};
-    SDL_Color couleurNoire = {0, 0, 0};
-
-
-    TTF_Font *police = NULL;
-    SDL_Surface *texte = NULL;
-    SDL_Rect positexte;
-    SDL_Rect dposition;
-dposition.x = 0;
-dposition.y = 0;
-
-
-    police = TTF_OpenFont("NotoSans.ttf", 62);
-
-    dragon = SDL_LoadBMP ("sprites_mario_sokoban/garden_detail.bmp");
-    SDL_BlitSurface(dragon , NULL, ecran, &dposition );
+    TTF_Init();
+    SDL_Surface *fond = SDL_LoadBMP("sprites_mario_sokoban/garden_detail.bmp");
+    if (fond) {
+        SDL_Rect origin = {0, 0, 0, 0};
+        SDL_BlitSurface(fond, NULL, ecran, &origin);
+        SDL_FreeSurface(fond);
+    }
+    TTF_Font *police = TTF_OpenFont("NotoSans.ttf", 40);
+    if (police) {
+        SDL_Color textColor = {250, 239, 205};
+        SDL_Surface *title = TTF_RenderText_Blended(police, "CHOISIS TON NIVEAU", textColor);
+        if (title) {
+            SDL_Rect titlePos = {170, 54, 0, 0};
+            SDL_BlitSurface(title, NULL, ecran, &titlePos);
+            SDL_FreeSurface(title);
+        }
+        const char *labels[7] = {"1", "2", "3", "4", "5", "6", "NIVEAUX PERSO"};
+        const SDL_Rect buttons[7] = {
+            {120,150,74,76}, {285,150,74,76}, {450,150,74,76},
+            {120,250,74,76}, {285,250,74,76}, {450,250,74,76}, {120,350,404,70}
+        };
+        for (int i = 0; i < 7; ++i) draw_ui_button(ecran, police, labels[i], buttons[i]);
+        TTF_CloseFont(police);
+    }
     SDL_Flip(ecran);
-    positexte.x = 10;
-    positexte.y = 50;
-    texte = TTF_RenderText_Blended(police, "CHOISIS TON NIVEAU....",couleurorange);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    /*rectangle = SDL_CreateRGBSurface(SDL_HWSURFACE, 20, 50, 32, 0, 0,0, 0);
-    SDL_FillRect(rectangle, NULL, SDL_MapRGB(ecran->format, 255, 255, 255)); // Remplissage de la surface avec du blanc
-    SDL_BlitSurface(rectangle, NULL, ecran, &position);
-PERMET DE CRER UN RECTANGLE DE DIMENSION VOULUE*/
-    positexte.x =120;
-    positexte.y = 150;
-    texte = TTF_RenderText_Shaded(police, " 1 ",couleurindigo,couleurbleumarine);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-    //SDL_FillRect(ecran, 0, SDL_MapRGB(personne, 0, 0, 0)); A CHANGER CE SERVIR DU COURS
-
-    positexte.x =285;
-    positexte.y = 150;
-    texte = TTF_RenderText_Shaded(police, " 2 ",couleurrouge,couleurjaune);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.x =450;
-    positexte.y = 150;
-    texte = TTF_RenderText_Shaded(police, " 3 ",couleurjaune,couleurrouge);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.x =120;
-    positexte.y = 250;
-    texte = TTF_RenderText_Shaded(police, " 4 ",couleurviolette,couleurvertepomme);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.x =285;
-    positexte.y = 250;
-    texte = TTF_RenderText_Shaded(police, " 5 ",couleurverte,couleurviolette);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    positexte.x =450;
-    positexte.y = 250;
-    texte = TTF_RenderText_Shaded(police, " 6 ",couleurblanche,couleurNoire);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-    TTF_CloseFont(police);
-    police = TTF_OpenFont("NotoSans.ttf", 55);
-    positexte.x =120;
-    positexte.y = 350;
-    texte = TTF_RenderText_Shaded(police, " VOS NIVEAUX ",couleurrouge,couleurjaune);
-    SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
-
-
-     SDL_Flip(ecran);
-     SDL_FreeSurface(texte);
-     SDL_FreeSurface(dragon);
-     TTF_CloseFont(police); /* Doit être avant TTF_Quit() */
-    TTF_Quit();//quitte la biblio texte
-
+    TTF_Quit();
 }
+
 void load(SDL_Surface *ecran, int niveau,int tableau1[])
 {
     int a = 1,i = 0;
@@ -1488,10 +1472,21 @@ void load(SDL_Surface *ecran, int niveau,int tableau1[])
 
     SDL_Flip(ecran); // Mise à jour de l'écran
 
-
-
-        while(a <6)
-        {
+    carre = SDL_LoadBMP("sprites_mario_sokoban/floor.bmp");
+    if (carre) {
+        for (int cell = 0; cell < 80; ++cell) {
+            posicarre.x = static_cast<Sint16>((cell % 10) * 68);
+            posicarre.y = static_cast<Sint16>((cell / 10) * 68);
+            SDL_BlitSurface(carre, NULL, ecran, &posicarre);
+        }
+        SDL_FreeSurface(carre);
+        carre = NULL;
+    }
+    const int drawOrder[] = {1, 4, 3, 6, 5};
+    int order = 0;
+    while(order < 5)
+    {
+        a = drawOrder[order];
             while(i < 80)
             {
                 if(tableau1[i] ==a)
@@ -1570,11 +1565,13 @@ void load(SDL_Surface *ecran, int niveau,int tableau1[])
                     }
                     if( a == 4)
                     {
-
                         carre = SDL_LoadBMP ("sprites_mario_sokoban/target.bmp");
-                         SDL_BlitSurface(carre , NULL, ecran, &posicarre );
-
-
+                        SDL_BlitSurface(carre , NULL, ecran, &posicarre );
+                    }
+                    if( a == 6)
+                    {
+                        carre = SDL_LoadBMP ("sprites_mario_sokoban/crate_target.bmp");
+                        SDL_BlitSurface(carre , NULL, ecran, &posicarre );
                     }
                     if( a == 5)
                     {
@@ -1588,7 +1585,7 @@ void load(SDL_Surface *ecran, int niveau,int tableau1[])
                 }
                 i++;
             }
-            a++;
+            order++;
             i = 0;
         }
 SDL_FreeSurface(rectangle);
