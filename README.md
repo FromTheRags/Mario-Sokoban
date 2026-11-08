@@ -4,7 +4,7 @@ This repository contains the original SDL 1.2 game and a separate SDL 3 port
 on the `SDL_3` branch. CI builds the selected branch and uploads a runnable
 Linux artifact. Tag a release as `v*` on the SDL 1.2 branch or `sdl3-v*` on
 `SDL_3` to publish the matching package as a GitHub release. Extract the
-`.tar.gz` artifact and start it with `./run.sh`.
+`.tar.gz` artifact, enter its `package` folder, and start `./run.sh`.
 
 ## Build the SDL 1.2 version
 
