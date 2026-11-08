@@ -25,7 +25,7 @@ PALETTE = {
 def fit_canvas(size, base):
     return Image.new("RGB", size, base)
 
-def tile(kind, size=(68, 68)):
+def tile(kind, size=(68, 68), facing="down"):
     w, h = size
     im = fit_canvas(size, PALETTE["cream"])
     d = ImageDraw.Draw(im)
@@ -36,22 +36,42 @@ def tile(kind, size=(68, 68)):
             shift = 0 if (y // 17) % 2 == 0 else 16
             for x in range(-shift, w, 32): d.line((x, y, x, min(y+17,h)), fill=PALETTE["blue"], width=2)
         d.rectangle((5, 5, w-6, h-6), outline=PALETTE["sky"], width=2)
-    elif kind == "crate":
+    elif kind in ("crate", "crate_target"):
+        if kind == "crate_target":
+            d.ellipse((3, 3, w-4, h-4), outline=PALETTE["gold"], width=5)
+            d.ellipse((9, 9, w-10, h-10), outline=PALETTE["green"], width=2)
         d.rounded_rectangle((5, 5, w-6, h-6), radius=7, fill=PALETTE["wood"], outline=PALETTE["ink"], width=3)
         d.line((12, 12, w-13, h-13), fill=PALETTE["wood_hi"], width=7)
         d.line((w-13, 12, 12, h-13), fill=PALETTE["wood_hi"], width=7)
         d.rectangle((w//2-4, 8, w//2+4, h-9), fill=PALETTE["wood"])
     elif kind == "target":
-        d.ellipse((9, 9, w-10, h-10), fill=PALETTE["gold"], outline=PALETTE["ink"], width=3)
-        d.ellipse((18, 18, w-19, h-19), outline=PALETTE["red"], width=5)
-        d.ellipse((w//2-4, h//2-4, w//2+4, h//2+4), fill=PALETTE["red"])
+        d.ellipse((8, 8, w-9, h-9), fill=(244, 198, 93, 90), outline=PALETTE["gold"], width=4)
+        d.ellipse((17, 17, w-18, h-18), outline=PALETTE["green"], width=4)
+        for angle in range(0, 360, 45):
+            cx = w//2 + round(math.cos(math.radians(angle))*13)
+            cy = h//2 + round(math.sin(math.radians(angle))*13)
+            d.ellipse((cx-4, cy-4, cx+4, cy+4), fill=PALETTE["white"], outline=PALETTE["gold"])
+        d.ellipse((w//2-5, h//2-5, w//2+5, h//2+5), fill=PALETTE["red"], outline=PALETTE["ink"])
     elif kind == "keeper":
-        # A small, original garden keeper in four facing directions.
-        d.ellipse((18, 3, w-19, 26), fill=PALETTE["green"], outline=PALETTE["ink"], width=2)
-        d.rounded_rectangle((14, 19, w-15, h-5), radius=11, fill=PALETTE["blue"], outline=PALETTE["ink"], width=2)
-        d.rectangle((20, h-12, 29, h-4), fill=PALETTE["ink"]); d.rectangle((w-29, h-12, w-20, h-4), fill=PALETTE["ink"])
-        d.ellipse((25, 12, 29, 16), fill=PALETTE["white"]); d.ellipse((w-29, 12, w-25, 16), fill=PALETTE["white"])
-        d.arc((w//2-7, 13, w//2+7, 23), 10, 170, fill=PALETTE["ink"], width=2)
+        # Original retro-platform gardener, with warm cap, moustache and tool belt.
+        d.ellipse((20, 8, 48, 39), fill=(242, 190, 137), outline=PALETTE["ink"], width=2)
+        d.rectangle((18, 19, 23, 31), fill=(112, 63, 48))
+        d.rectangle((45, 19, 50, 31), fill=(112, 63, 48))
+        d.rounded_rectangle((16, 7, 50, 22), radius=7, fill=(227, 112, 55), outline=PALETTE["ink"], width=2)
+        d.rectangle((12, 18, 53, 24), fill=(246, 177, 76), outline=PALETTE["ink"], width=2)
+        eye_x = 27 if facing == "left" else 40 if facing == "right" else 29
+        if facing not in ("up",):
+            d.rectangle((eye_x, 24, eye_x+3, 29), fill=PALETTE["ink"])
+            d.rectangle((eye_x+7, 24, eye_x+10, 29), fill=PALETTE["ink"])
+            d.arc((29, 28, 42, 37), 10, 160, fill=(92, 53, 42), width=3)
+        d.rounded_rectangle((14, 35, 54, 58), radius=7, fill=(47, 139, 143), outline=PALETTE["ink"], width=3)
+        d.rectangle((22, 38, 29, 54), fill=(226, 155, 68), outline=PALETTE["ink"])
+        d.rectangle((39, 38, 46, 54), fill=(226, 155, 68), outline=PALETTE["ink"])
+        d.ellipse((23, 43, 28, 48), fill=PALETTE["gold"], outline=PALETTE["ink"])
+        d.ellipse((40, 43, 45, 48), fill=PALETTE["gold"], outline=PALETTE["ink"])
+        d.rectangle((10, 57, 30, 64), fill=(90, 74, 56), outline=PALETTE["ink"], width=2)
+        d.rectangle((38, 57, 58, 64), fill=(90, 74, 56), outline=PALETTE["ink"], width=2)
+        d.rectangle((31, 46, 37, 56), fill=(186, 105, 54), outline=PALETTE["ink"])
     elif kind == "eraser":
         d.polygon(((13, h-11), (34, 10), (w-10, 27), (w-31, h-8)), fill=PALETTE["red"], outline=PALETTE["ink"])
         d.line((24, h-11, 45, 24), fill=PALETTE["white"], width=3)
@@ -65,6 +85,11 @@ def tile(kind, size=(68, 68)):
     elif kind == "back":
         d.rounded_rectangle((4, 8, w-5, h-9), radius=9, fill=PALETTE["red"], outline=PALETTE["ink"], width=3)
         d.polygon(((12, h//2), (31, 16), (31, 28), (w-12, 28), (w-12, h-28), (31, h-28), (31, h-16)), fill=PALETTE["white"])
+    elif kind == "floor":
+        d.rectangle((0, 0, w-1, h-1), fill=(232, 220, 181))
+        d.rectangle((2, 2, w-3, h-3), outline=(212, 201, 165), width=1)
+        for x, y in ((12, 16), (48, 40), (26, 57), (57, 10)):
+            d.ellipse((x, y, x+3, y+3), fill=PALETTE["green"])
     elif kind == "button":
         d.rounded_rectangle((2, 5, w-3, h-6), radius=12, fill=PALETTE["green"], outline=PALETTE["ink"], width=3)
         d.line((13, 12, w-14, 12), fill=PALETTE["leaf"], width=3)
@@ -99,24 +124,35 @@ def save(name, image):
     image.save(OUT / name, format="BMP")
 
 for filename, kind in {
-    "crate.bmp": "crate", "crate_target.bmp": "target", "crate_editor.bmp": "crate",
+    "floor.bmp": "floor",
+    "crate.bmp": "crate", "crate_target.bmp": "crate_target", "crate_editor.bmp": "crate",
     "wall.bmp": "wall", "wall_editor.bmp": "wall", "target.bmp": "target",
     "target_editor.bmp": "target", "keeper_down.bmp": "keeper", "keeper_up.bmp": "keeper",
     "keeper_left.bmp": "keeper", "keeper_right.bmp": "keeper", "keeper_editor.bmp": "keeper",
     "retry.bmp": "replay", "back.bmp": "back", "save.bmp": "save",
     "eraser.bmp": "eraser", "play.bmp": "button",
 }.items():
-    save(filename, tile(kind))
+    save(filename, tile(kind, facing=filename.removeprefix("keeper_").removesuffix(".bmp") if filename.startswith("keeper_") else "down"))
 
 # The executable window icon is generated from the same original crate motif.
 tile("crate", (32, 32)).save(ROOT / "caisse.bmp", format="BMP")
 tile("crate", (32, 32)).save(ROOT / "caisse.ico", format="ICO")
 
 for filename in ("menu.bmp", "garden.bmp", "editor.bmp", "garden_detail.bmp"):
-    # Preserve the legacy window dimensions while replacing their artwork.
+    # The SDL 1.2 menu fills the 680x544 window. Keep the generated screen
+    # full-size so the artwork never crops the visible choices.
     old = OUT / filename
     try:
         with Image.open(old) as prior: size = prior.size
     except Exception: size = (680, 544)
-    save(filename, backdrop(size, title=filename == "menu1.png"))
+    if filename == "menu.bmp":
+        size = (680, 544)
+    image = backdrop(size, title=filename == "menu.bmp")
+    if filename == "menu.bmp":
+        draw = ImageDraw.Draw(image)
+        draw.rounded_rectangle((176, 210, 480, 255), radius=11, fill=PALETTE["green"], outline=PALETTE["ink"], width=4)
+        draw.rounded_rectangle((176, 257, 480, 302), radius=11, fill=PALETTE["blue"], outline=PALETTE["ink"], width=4)
+        draw.line((192, 217, 464, 217), fill=PALETTE["leaf"], width=3)
+        draw.line((192, 264, 464, 264), fill=PALETTE["sky"], width=3)
+    save(filename, image)
 
