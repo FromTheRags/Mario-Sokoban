@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches: [master, main, SDL_3]
-    tags: ['v*']
+    tags: ['v*', 'sdl3-v*']
   pull_request:
     branches: [master, main, SDL_3]
   workflow_dispatch:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build-sdl12:
-    if: github.ref_name != 'SDL_3' && github.base_ref != 'SDL_3'
+    if: github.ref_name != 'SDL_3' && github.base_ref != 'SDL_3' && github.head_ref != 'SDL_3' && !startsWith(github.ref, 'refs/tags/sdl3-v')
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +34,7 @@ jobs:
           path: build/mario-sokoban-sdl12-linux.tar.gz
 
   build-sdl3:
-    if: github.ref_name == 'SDL_3' || github.base_ref == 'SDL_3'
+    if: github.ref_name == 'SDL_3' || github.base_ref == 'SDL_3' || github.head_ref == 'SDL_3' || startsWith(github.ref, 'refs/tags/sdl3-v')
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -59,7 +59,7 @@ jobs:
 
   publish-release:
     needs: [build-sdl12, build-sdl3]
-    if: always() && startsWith(github.ref, 'refs/tags/v') && (needs.build-sdl12.result == 'success' || needs.build-sdl3.result == 'success')
+    if: always() && (startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/sdl3-v')) && (needs.build-sdl12.result == 'success' || needs.build-sdl3.result == 'success')
     runs-on: ubuntu-22.04
     permissions:
       contents: write
