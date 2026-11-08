@@ -3,13 +3,7 @@
 #else
     #include <stdlib.h>
 #endif
-#ifdef __APPLE__
-#include <SDL/SDL.h>
-#else
-#include <SDL.h>
-#endif
-#include <SDL/SDL_image.h>
-#include <SDL/SDL_ttf.h>
+#include "legacy_sdl3.hpp"
 #include <string.h>
 //code source retouché: rechercher "//bug résolu :" pour voir les retouches
 void pause();
@@ -114,7 +108,7 @@ while(finpartie < 4 && quit == 0)
 {
 
     rectangle = SDL_CreateRGBSurface(SDL_HWSURFACE, 680, 544, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-    SDL_FillRect(rectangle, NULL, SDL_MapRGB(ecran->format, 0, 0, 0));//couleur du rectangle
+    SDL_FillRect(rectangle, NULL, SDL_MapRGB(ecran, 0, 0, 0));//couleur du rectangle
     SDL_BlitSurface(rectangle, NULL, ecran, &position);//colle le rectangle à l'écran(0 parce que l'on ne sert pas de ces paramètres
 
     image_demarrage = IMG_Load ("sprites_mario_sokoban/menu1.png");
@@ -418,7 +412,7 @@ fois=0;
              ||event.key.keysym.sym ==SDLK_RIGHT||event.key.keysym.sym ==SDLK_LEFT)
      {
          mario = SDL_CreateRGBSurface(SDL_HWSURFACE, 68, 68, 16, 0, 0,0, 0);//on charge un carré blanc à l'ancien emplacement de mario
-    SDL_FillRect(mario, NULL, SDL_MapRGB(ecran->format, 255,255,255));//cela permet d'éviter de se servir à chaque boucle de la fonction load(ce qui fait moche et ramer)
+    SDL_FillRect(mario, NULL, SDL_MapRGB(ecran, 255,255,255));//cela permet d'éviter de se servir à chaque boucle de la fonction load(ce qui fait moche et ramer)
     SDL_BlitSurface(mario, NULL, ecran, &posimario); /* On
 place mario à sa nouvelle position */
 SDL_Flip(ecran); /* On met à jour l'affichage */
@@ -916,7 +910,7 @@ do
         }
         quita = 0;
     rectangle = SDL_CreateRGBSurface(SDL_HWSURFACE, 680, 544, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-    SDL_FillRect(rectangle, NULL, SDL_MapRGB(ecran->format, 255, 255, 255));//couleur du rectangle
+    SDL_FillRect(rectangle, NULL, SDL_MapRGB(ecran, 255, 255, 255));//couleur du rectangle
      SDL_BlitSurface(rectangle, NULL, ecran, &position);//colle le rectangle à l'écran(0 parce que l'on ne sert pas de ces paramètres
 
     if(jouer == 2)
@@ -966,7 +960,7 @@ do
     {
 
         lignes[lignesvar] = SDL_CreateRGBSurface(SDL_HWSURFACE, 680, 1, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-        SDL_FillRect(lignes[lignesvar], NULL, SDL_MapRGB(ecran->format,0,0, 0));//couleur du rectangle
+        SDL_FillRect(lignes[lignesvar], NULL, SDL_MapRGB(ecran,0,0, 0));//couleur du rectangle
 
         SDL_BlitSurface(lignes[lignesvar], NULL, ecran, &positionlignes); // Collage
 
@@ -978,7 +972,7 @@ do
     positionlignes.y = 34;
     positionlignes.x = 68;//544 mais en longeur(première ligne)
     colleimagecrea= SDL_CreateRGBSurface(SDL_HWSURFACE, 544, 1, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran->format,0,0, 0));//couleur du rectangle
+    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran,0,0, 0));//couleur du rectangle
     SDL_BlitSurface(colleimagecrea, NULL, ecran, &positionlignes); // Collage
 
     arrete = 0;
@@ -989,7 +983,7 @@ do
     {
         positionlignes.x += 68;
         lignes[lignesvar] = SDL_CreateRGBSurface(SDL_HWSURFACE, 1, 544, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-        SDL_FillRect(lignes[lignesvar], NULL, SDL_MapRGB(ecran->format,0,0, 0));//couleur du rectangle
+        SDL_FillRect(lignes[lignesvar], NULL, SDL_MapRGB(ecran,0,0, 0));//couleur du rectangle
 
         SDL_BlitSurface(lignes[lignesvar], NULL, ecran, &positionlignes); // Collage
         lignesvar++;
@@ -1212,7 +1206,7 @@ do
     if(cursus == 6)
     {tableaucrea[cases(posiclic)-1] =2;
     colleimagecrea= SDL_CreateRGBSurface(SDL_HWSURFACE, 68, 68, 16, 0, 0,0, 0);//on charge un carré blanc à l'ancien emplacement DE L'OBJET
-    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran->format, 255,255,255));
+    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran, 255,255,255));
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
     }
 
@@ -1264,7 +1258,7 @@ do
     {tableaucrea[cases(posiclic)-1] =2;
     posiclic.y +=34;
     colleimagecrea= SDL_CreateRGBSurface(SDL_HWSURFACE, 68, 34, 16, 0, 0,0, 0);//on charge un carré blanc à l'ancien emplacement DE L'OBJET
-    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran->format, 255,255,255));
+    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran, 255,255,255));
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
     posiclic.y -=34;
     }
@@ -1277,7 +1271,7 @@ arrete = 0;
     {
 
         lignes[lignesvar] = SDL_CreateRGBSurface(SDL_HWSURFACE, 680, 1, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-        SDL_FillRect(lignes[lignesvar], NULL, SDL_MapRGB(ecran->format,0,0, 0));//couleur du rectangle
+        SDL_FillRect(lignes[lignesvar], NULL, SDL_MapRGB(ecran,0,0, 0));//couleur du rectangle
 
         SDL_BlitSurface(lignes[lignesvar], NULL, ecran, &positionlignes); // Collage
 
@@ -1289,7 +1283,7 @@ arrete = 0;
     positionlignes.y = 34;
     positionlignes.x = 68;//544 mais en longeur(première ligne)
     colleimagecrea= SDL_CreateRGBSurface(SDL_HWSURFACE, 544, 1, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran->format,0,0, 0));//couleur du rectangle
+    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran,0,0, 0));//couleur du rectangle
     SDL_BlitSurface(colleimagecrea, NULL, ecran, &positionlignes); // Collage
     arrete = 0;
     positionlignes.y = 0;
@@ -1299,7 +1293,7 @@ arrete = 0;
     {
         positionlignes.x += 68;
         lignes[lignesvar] = SDL_CreateRGBSurface(SDL_HWSURFACE, 1, 544, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-        SDL_FillRect(lignes[lignesvar], NULL, SDL_MapRGB(ecran->format,0,0, 0));//couleur du rectangle
+        SDL_FillRect(lignes[lignesvar], NULL, SDL_MapRGB(ecran,0,0, 0));//couleur du rectangle
 
         SDL_BlitSurface(lignes[lignesvar], NULL, ecran, &positionlignes); // Collage
         lignesvar++;
@@ -1405,7 +1399,7 @@ dposition.y = 0;
     SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
 
     /*rectangle = SDL_CreateRGBSurface(SDL_HWSURFACE, 20, 50, 32, 0, 0,0, 0);
-    SDL_FillRect(rectangle, NULL, SDL_MapRGB(ecran->format, 255, 255, 255)); // Remplissage de la surface avec du blanc
+    SDL_FillRect(rectangle, NULL, SDL_MapRGB(ecran, 255, 255, 255)); // Remplissage de la surface avec du blanc
     SDL_BlitSurface(rectangle, NULL, ecran, &position);
 PERMET DE CRER UN RECTANGLE DE DIMENSION VOULUE*/
     positexte.x =120;
@@ -1463,7 +1457,7 @@ void load(SDL_Surface *ecran, int niveau,int tableau1[])
     posicarre.y = 0;
     SDL_Surface *rectangle = NULL;//sert à créer un pointeur sur rectangle
     rectangle = SDL_CreateRGBSurface(SDL_HWSURFACE, 680, 544, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-    SDL_FillRect(rectangle, NULL, SDL_MapRGB(ecran->format, 255,255,255));//couleur du rectangle
+    SDL_FillRect(rectangle, NULL, SDL_MapRGB(ecran, 255,255,255));//couleur du rectangle
 
     SDL_Rect position;
     position.x = 0;
@@ -2135,13 +2129,13 @@ void afftrait(int jaune,SDL_Surface* ecran,SDL_Rect positionlignes,SDL_Surface*c
 {
     if(jaune == 1)
     {colleimagecrea= SDL_CreateRGBSurface(SDL_HWSURFACE, 68, 3, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran->format,255,255, 0));//couleur du rectangle
+    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran,255,255, 0));//couleur du rectangle
     SDL_BlitSurface(colleimagecrea, NULL, ecran, &positionlignes); // Collage
     }
     if(jaune==0)
     {
         colleimagecrea= SDL_CreateRGBSurface(SDL_HWSURFACE, 68, 3, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran->format,255,255,255));//couleur du rectangle
+    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran,255,255,255));//couleur du rectangle
     SDL_BlitSurface(colleimagecrea, NULL, ecran, &positionlignes); // Collage
 
     }
@@ -2765,7 +2759,7 @@ fois=0;
          if(event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_DOWN
             || event.key.keysym.sym == SDLK_RIGHT || event.key.keysym.sym == SDLK_LEFT)
         {mario = SDL_CreateRGBSurface(SDL_HWSURFACE, 68, 68, 16, 0, 0,0, 0);//on charge un carré blanc à l'ancien emplacement de mario
-    SDL_FillRect(mario, NULL, SDL_MapRGB(ecran->format, 255,255,255));//cela permet d'éviter de se servir à chaque boucle de la fonction load(ce qui fait moche et ramer)
+    SDL_FillRect(mario, NULL, SDL_MapRGB(ecran, 255,255,255));//cela permet d'éviter de se servir à chaque boucle de la fonction load(ce qui fait moche et ramer)
     SDL_BlitSurface(mario, NULL, ecran, &posimario); /* On
 place mario à sa nouvelle position */
 SDL_Flip(ecran); /* On met à jour l'affichage */
@@ -3124,7 +3118,7 @@ int affcomplet(SDL_Surface* ecran,SDL_Rect posiclic)
     positexte.y = 0;
 
     texte= SDL_CreateRGBSurface(SDL_HWSURFACE, 680, 544, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-    SDL_FillRect(texte, NULL, SDL_MapRGB(ecran->format,0,0, 0));//couleur du rectangle
+    SDL_FillRect(texte, NULL, SDL_MapRGB(ecran,0,0, 0));//couleur du rectangle
     SDL_BlitSurface(texte, NULL, ecran, &positexte); // Collage
 
 

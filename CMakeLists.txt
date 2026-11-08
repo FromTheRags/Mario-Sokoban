@@ -1,19 +1,15 @@
-cmake_minimum_required(VERSION 3.16)
-project(MarioSokoban LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.20)
+project(MarioSokobanSDL3 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(SDL REQUIRED sdl)
-pkg_check_modules(SDL_IMAGE REQUIRED SDL_image)
-pkg_check_modules(SDL_TTF REQUIRED SDL_ttf)
+find_package(SDL3 CONFIG REQUIRED)
+find_package(SDL3_image CONFIG REQUIRED)
+find_package(SDL3_ttf CONFIG REQUIRED)
 
 add_executable(mario-sokoban main.cpp)
 set_target_properties(mario-sokoban PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/package")
-target_include_directories(mario-sokoban PRIVATE ${SDL_INCLUDE_DIRS} ${SDL_IMAGE_INCLUDE_DIRS} ${SDL_TTF_INCLUDE_DIRS})
-target_compile_options(mario-sokoban PRIVATE ${SDL_CFLAGS_OTHER} ${SDL_IMAGE_CFLAGS_OTHER} ${SDL_TTF_CFLAGS_OTHER})
-target_link_directories(mario-sokoban PRIVATE ${SDL_LIBRARY_DIRS} ${SDL_IMAGE_LIBRARY_DIRS} ${SDL_TTF_LIBRARY_DIRS})
-target_link_libraries(mario-sokoban PRIVATE ${SDL_LIBRARIES} ${SDL_IMAGE_LIBRARIES} ${SDL_TTF_LIBRARIES})
+target_link_libraries(mario-sokoban PRIVATE SDL3::SDL3 SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(mario-sokoban PRIVATE -finput-charset=ISO-8859-1)
 endif()
@@ -27,4 +23,9 @@ add_custom_command(TARGET mario-sokoban POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/NotoSans.ttf" "${PACKAGE_DIR}/NotoSans.ttf"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/règles.txt" "${PACKAGE_DIR}/règles.txt"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/règles.docx" "${PACKAGE_DIR}/règles.docx"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/LICENSES.md" "${PACKAGE_DIR}/LICENSES.md"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/NotoSans-OFL.txt" "${PACKAGE_DIR}/NotoSans-OFL.txt"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/SDL-1.2-LGPL-2.1.txt" "${PACKAGE_DIR}/SDL-1.2-LGPL-2.1.txt"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/SDL-image-zlib.txt" "${PACKAGE_DIR}/SDL-image-zlib.txt"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/SDL-ttf-zlib.txt" "${PACKAGE_DIR}/SDL-ttf-zlib.txt"
 )

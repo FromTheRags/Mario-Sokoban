@@ -3,7 +3,11 @@
 This repository contains the original SDL 1.2 game and a separate SDL 3 port
 on the `SDL_3` branch. CI builds the selected branch and uploads a runnable
 Linux artifact. Tag a release as `v*` to publish the build artifacts as a
-GitHub release.
+GitHub release. Launch the artifact with `./run.sh` from the extracted folder.
+
+The SDL 3 branch targets SDL 3.4.20, SDL3_image 3.4.8, and SDL3_ttf 3.2.2.
+`legacy_sdl3.hpp` adapts the old screen-surface and event calls to SDL 3 while
+preserving the existing menus, editor, levels, and Sokoban rules.
 
 ## Build the SDL 1.2 version
 
