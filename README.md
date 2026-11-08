@@ -12,8 +12,11 @@ The complete upstream SDL 1.2 source is included in `third_party/SDL-1.2`.
 On Windows, CMake builds it with CLion's bundled MinGW toolchain. No
 `pkg-config`, SDL installer, SDL_image, or SDL_ttf package is required. Open
 the repository as a CMake project, select the `mario-sokoban` target, then
-Build and Run. The game loads BMP assets directly and renders text with the
-original 5x7 bitmap typeface in `bitmap_font.hpp`.
+Build and Run. The Windows build loads the transparent player PNGs through the
+native Windows Imaging Component; other SDL 1.2 platforms use the matching BMP
+fallbacks. Press F11 to toggle fullscreen, or pass `--fullscreen` at startup.
+The game renders text with the original 5x7 bitmap typeface in `bitmap_font.hpp`.
+The Windows executable icon is generated from the player sprite.
 
 ## Build the SDL 1.2 version on Linux
 

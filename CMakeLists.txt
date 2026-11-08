@@ -5,9 +5,18 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(WIN32)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        get_filename_component(MINGW_COMPILER_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+        find_program(MINGW_WINDRES_EXECUTABLE NAMES windres HINTS "${MINGW_COMPILER_DIR}" NO_DEFAULT_PATH)
+        if(MINGW_WINDRES_EXECUTABLE AND (NOT CMAKE_RC_COMPILER OR NOT IS_ABSOLUTE "${CMAKE_RC_COMPILER}"))
+            set(CMAKE_RC_COMPILER "${MINGW_WINDRES_EXECUTABLE}" CACHE FILEPATH "MinGW resource compiler" FORCE)
+        endif()
+    endif()
+    enable_language(RC)
     set(SDL12_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL-1.2")
     add_executable(mario-sokoban WIN32
         main.cpp
+        icone.rc
         "${SDL12_SOURCE_DIR}/src/main/win32/SDL_win32_main.c"
     )
 else()
@@ -59,7 +68,7 @@ if(WIN32)
         ddraw dxguid gdi32 imm32 ole32 shell32 user32 winmm
         opengl32 version
     )
-    target_link_libraries(mario-sokoban PRIVATE SDL12)
+    target_link_libraries(mario-sokoban PRIVATE SDL12 windowscodecs ole32)
     add_custom_command(TARGET mario-sokoban POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:SDL12>" "$<TARGET_FILE_DIR:mario-sokoban>"
     )
@@ -83,6 +92,7 @@ add_custom_command(TARGET mario-sokoban POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/niveaux perso" "${PACKAGE_DIR}/niveaux perso"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/data" "${PACKAGE_DIR}/data"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/caisse.bmp" "${PACKAGE_DIR}/caisse.bmp"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/caisse.ico" "${PACKAGE_DIR}/caisse.ico"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/règles.txt" "${PACKAGE_DIR}/règles.txt"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/règles.docx" "${PACKAGE_DIR}/règles.docx"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/LICENSES.md" "${PACKAGE_DIR}/LICENSES.md"

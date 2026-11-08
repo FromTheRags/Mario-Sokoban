@@ -7,6 +7,11 @@
 #include "bitmap_font.hpp"
 #include <string.h>
 #include <string>
+#include <vector>
+#ifdef _WIN32
+#include <windows.h>
+#include <wincodec.h>
+#endif
 //code source retouché: rechercher "//bug résolu :" pour voir les retouches
 void pause();
 void enregistreniv(int tableau[],int niveaufichier,int eff);
@@ -25,14 +30,27 @@ void afftrait(int jaune,SDL_Surface* ecran,SDL_Rect positionlignes,SDL_Surface*c
 int caseposi(int cases,int number);
 int niveaucrea(SDL_Surface* ecran,SDL_Rect posiclic);
 int tobesur(SDL_Surface* ecran,SDL_Rect posiclic);
-int play(int tableau1[],SDL_Surface* caisse,SDL_Rect posicaisse,SDL_Surface* ecran,SDL_Rect posiclic,SDL_Rect posiretour,SDL_Rect posireplay,SDL_Rect posimario,SDL_Surface* mario,SDL_Surface* retour,SDL_Surface* replay);
+int play(int tableau1[],SDL_Surface* caisse,SDL_Rect posicaisse,SDL_Surface* ecran,SDL_Rect posiclic,SDL_Rect posiretour,SDL_Rect posireplay,SDL_Rect posimario,SDL_Surface* mario,SDL_Surface* retour,SDL_Surface* replay,int customLevel);
 int affonlyvictyouinon(SDL_Surface* ecran,SDL_Rect posiclic);
 void affefface(SDL_Surface* ecran);
 int affcomplet(SDL_Surface* ecran,SDL_Rect posiclic);
 void draw_ui_button(SDL_Surface* ecran, TTF_Font* font, const char* label, SDL_Rect bounds);
 void draw_game_text(SDL_Surface* ecran, TTF_Font* font, const char* label, SDL_Rect at, SDL_Color color);
+void draw_centered_game_text(SDL_Surface* ecran, TTF_Font* font, const char* label, SDL_Rect bounds, SDL_Color color);
+void draw_centered_game_text(SDL_Surface* ecran, TTF_Font* font, const char* label, SDL_Rect bounds, SDL_Color color)
+{
+    if (!ecran || !font || !label) return;
+    SDL_Surface *text = TTF_RenderText_Blended(font, label, color);
+    if (!text) return;
+    SDL_Rect at = {static_cast<Sint16>(bounds.x + (bounds.w - text->w) / 2),
+                   static_cast<Sint16>(bounds.y + (bounds.h - text->h) / 2), 0, 0};
+    SDL_FreeSurface(text);
+    draw_game_text(ecran, font, label, at, color);
+}
+
 void draw_level_thumbnail(SDL_Surface* ecran, const int map[80], int x, int y, int width, int height);
 void redraw_board_cell(SDL_Surface* ecran, int value, SDL_Rect at);
+SDL_Surface* load_character_png(const char* pngPath);
 
 int main ( int argc, char* argv[] )
 {
@@ -51,8 +69,13 @@ int main ( int argc, char* argv[] )
     SDL_WM_SetIcon(SDL_LoadBMP("caisse.bmp"), NULL);
     SDL_WM_SetCaption("Mario Sokoban !", NULL);//sert à renomer la fenêtre,second parametre icone
     // create a new window
-    SDL_Surface* ecran = SDL_SetVideoMode(680, 544, 16,
-                                           SDL_HWSURFACE|SDL_DOUBLEBUF);
+    bool fullscreen = false;
+    for (int arg = 1; arg < argc; ++arg) {
+        if (strcmp(argv[arg], "--fullscreen") == 0 || strcmp(argv[arg], "-f") == 0) fullscreen = true;
+    }
+    Uint32 videoFlags = SDL_HWSURFACE | SDL_DOUBLEBUF;
+    if (fullscreen) videoFlags |= SDL_FULLSCREEN;
+    SDL_Surface* ecran = SDL_SetVideoMode(680, 544, 16, videoFlags);
     if ( !ecran )
     {
         printf("Unable to set 680x544 video: %s\n", SDL_GetError());
@@ -119,20 +142,20 @@ while(finpartie < 4 && quit == 0)
 
     image_demarrage = SDL_LoadBMP ("sprites_mario_sokoban/menu.bmp");
     SDL_BlitSurface(image_demarrage , NULL, ecran, &pimage_demarrage );
-    police = TTF_OpenFont("NotoSans.ttf", 18);
-    positexte.x = 12;
-    positexte.y = 510;
-    draw_game_text(ecran, police, "CREATED BY FROMTHERAGS", positexte, SDL_Color{255, 231, 149});
+    SDL_Rect creditPlaque = {10, 500, 248, 32};
+    SDL_FillRect(ecran, &creditPlaque, SDL_MapRGB(ecran->format, 29, 43, 61));
+    SDL_Rect creditInset = {12, 502, 244, 28};
+    SDL_FillRect(ecran, &creditInset, SDL_MapRGB(ecran->format, 32, 55, 84));
+    police = TTF_OpenFont("NotoSans.ttf", 17);
+    draw_centered_game_text(ecran, police, "CREATED BY FROMTHERAGS", SDL_Rect{12,502,244,28}, SDL_Color{255,250,230});
     TTF_CloseFont(police);
 
     police = TTF_OpenFont("NotoSans.ttf", 40);
-    positexte.x = 225; positexte.y = 75;
-    draw_game_text(ecran, police, "MARIO SOKOBAN", positexte, SDL_Color{255,245,205});
+    draw_centered_game_text(ecran, police, "MARIO SOKOBAN", SDL_Rect{157,35,366,94}, SDL_Color{255,245,205});
+    TTF_CloseFont(police);
     police = TTF_OpenFont("NotoSans.ttf", 26);
-    positexte.x = 260; positexte.y = 217;
-    draw_game_text(ecran, police, "1 - JOUER", positexte, SDL_Color{255,245,205});
-    positexte.x = 260; positexte.y = 262;
-    draw_game_text(ecran, police, "2 - CREER", positexte, SDL_Color{255,245,205});
+    draw_centered_game_text(ecran, police, "1 - JOUER", SDL_Rect{176,210,304,45}, SDL_Color{255,245,205});
+    draw_centered_game_text(ecran, police, "2 - CREER", SDL_Rect{176,257,304,45}, SDL_Color{255,245,205});
     TTF_CloseFont(police);
 
     SDL_Flip(ecran);
@@ -144,6 +167,8 @@ while(finpartie < 4 && quit == 0)
    while (continuer)
     {
        SDL_WaitEvent(&event);
+       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) { SDL_WM_ToggleFullScreen(ecran); continue; }
+
      switch(event.type)
     {
         case SDL_QUIT:
@@ -195,7 +220,7 @@ while(finpartie < 4 && quit == 0)
     SDL_Flip(ecran);
 
          fois=0;
-     test =fopen("data/open1.lvl","r");
+     test =fopen("data/completed1.lvl","r");
      if (test != NULL)
      {
          fscanf(test," %d ",&level);
@@ -207,7 +232,7 @@ while(finpartie < 4 && quit == 0)
         }
      }
      test = NULL;
-     test =fopen("data/open2.lvl","r");
+     test =fopen("data/completed2.lvl","r");
      if (test != NULL)
      {
          fscanf(test," %d ",&level);
@@ -219,7 +244,7 @@ while(finpartie < 4 && quit == 0)
         }
      }
           test = NULL;
-     test =fopen("data/open3.lvl","r");
+     test =fopen("data/completed3.lvl","r");
      if (test != NULL)
      {
          fscanf(test," %d ",&level);
@@ -231,7 +256,7 @@ while(finpartie < 4 && quit == 0)
         }
      }
           test = NULL;
-     test =fopen("data/open4.lvl","r");
+     test =fopen("data/completed4.lvl","r");
      if (test != NULL)
      {
          fscanf(test," %d ",&level);
@@ -243,7 +268,7 @@ while(finpartie < 4 && quit == 0)
         }
      }
           test = NULL;
-     test =fopen("data/open5.lvl","r");
+     test =fopen("data/completed5.lvl","r");
      if (test != NULL)
      {
          fscanf(test," %d ",&level);
@@ -255,7 +280,7 @@ while(finpartie < 4 && quit == 0)
         }
      }
           test = NULL;
-     test =fopen("data/open6.lvl","r");
+     test =fopen("data/completed6.lvl","r");
      if (test != NULL)
      {
          fscanf(test," %d ",&level);
@@ -271,6 +296,8 @@ while(finpartie < 4 && quit == 0)
             while (continuer)
     {
        SDL_WaitEvent(&event);
+       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) { SDL_WM_ToggleFullScreen(ecran); continue; }
+
      switch(event.type)
     {
         case SDL_QUIT:
@@ -302,7 +329,7 @@ while(finpartie < 4 && quit == 0)
       case SDL_MOUSEBUTTONUP: /* Clic de la souris */
       posiclic.x = event.button.x; /* change les coordonnées de posiclic*/
       posiclic.y = event.button.y;
-      if(posiclic.x >= 0 && posiclic.x <= 68 && posiclic.y >= 0 && posiclic.y <= 68)
+      if(posiclic.x >= 0 && posiclic.x <= 68 && posiclic.y <= 68)
       {finpartie = 3;
       continuer=0;
       niveau = 1;
@@ -338,9 +365,10 @@ while(finpartie < 4 && quit == 0)
         if(accesniv == 0)
         quit = 1;
         if(quit == 0 && accesniv != 10)
-        {lecture(accesniv,tableaucrea);
+        {int customLevel=accesniv;
+        lecture(customLevel,tableaucrea);
         accesniv = 0;
-          accesniv =play(tableaucrea,caisse,posicaisse,ecran,posiclic,posiretour,posireplay,posimario,mario,retour,replay);
+          accesniv =play(tableaucrea,caisse,posicaisse,ecran,posiclic,posiretour,posireplay,posimario,mario,retour,replay,customLevel);
           if(accesniv)
           {quit = 1;
           }
@@ -415,6 +443,8 @@ fois=0;
    while (continuer == 1 && quit == 0 && endwhile == 0)
        {
          SDL_WaitEvent(&event);
+         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) { SDL_WM_ToggleFullScreen(ecran); continue; }
+
              switch(event.type)
            {
           case SDL_QUIT:
@@ -433,7 +463,7 @@ fois=0;
 
          posimario.y -= 68;
 
-     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_up.bmp");
+     mario = load_character_png("sprites_mario_sokoban/keeper_up.png");
       if(verif(niveau,posimario,tableau1,1) == 1 )
            {
                posimario.y += 68;
@@ -466,7 +496,7 @@ fois=0;
      {
 
          posimario.y += 68;
-     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_down.bmp");
+     mario = load_character_png("sprites_mario_sokoban/keeper_down.png");
       if(verif(niveau,posimario,tableau1,4) == 1)
            {
                posimario.y -= 68;
@@ -524,7 +554,7 @@ fois=0;
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.x -= 68;
             }
-     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_right.bmp");
+     mario = load_character_png("sprites_mario_sokoban/keeper_right.png");
 
      }
      if(event.key.keysym.sym == SDLK_LEFT)
@@ -557,7 +587,7 @@ fois=0;
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.x += 68;
            }
-     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_left.bmp");
+     mario = load_character_png("sprites_mario_sokoban/keeper_left.png");
      }
          break;
          case SDL_MOUSEBUTTONUP: /* Clic de la souris */
@@ -567,7 +597,7 @@ fois=0;
       {finpartie = 1;
        endwhile=1;
       }
-      if(posiclic.x >=68*9  && posiclic.x <= 68*10 && posiclic.y >= 0 && posiclic.y <= 68)
+      if(posiclic.x >=68*9 && posiclic.x < 68*10 && posiclic.y < 34)
       {finpartie = 2;
        endwhile=1;
       }
@@ -721,6 +751,8 @@ do
    while (continuer)
     {
        SDL_WaitEvent(&event);
+       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) { SDL_WM_ToggleFullScreen(ecran); continue; }
+
      switch(event.type)
     {
         case SDL_QUIT:
@@ -941,7 +973,7 @@ do
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posicolleimagecrea );
 
     posicolleimagecrea.x =68*3;
-    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/keeper_editor.bmp");
+    colleimagecrea= load_character_png("sprites_mario_sokoban/keeper_editor.png");
     SDL_BlitSurface(colleimagecrea , NULL, ecran, &posicolleimagecrea );
 
     posicolleimagecrea.x =68*4;
@@ -1026,6 +1058,8 @@ do
    while (continuer)
     {
        SDL_WaitEvent(&event);
+       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) { SDL_WM_ToggleFullScreen(ecran); continue; }
+
      switch(event.type)
     {
         case SDL_QUIT:
@@ -1035,22 +1069,23 @@ do
      case SDL_MOUSEBUTTONUP: /* Clic de la souris */
       posiclic.x = event.button.x; /* change les coordonnées de posiclic*/
       posiclic.y = event.button.y;
-      if(posiclic.x >= 0 && posiclic.x <= 68 && posiclic.y >= 0 && posiclic.y <= 68)
+      if(posiclic.x >= 0 && posiclic.x < 68 && posiclic.y < 34)
       {
        debutcrea = 1;
        creationend = 3;
        continuer = 0;
        quita = 1;
       }
-      if(posiclic.x >=68*9  && posiclic.x <= 68*10 && posiclic.y >= 0 && posiclic.y <= 68)
+      if(posiclic.x >=68*9 && posiclic.x < 68*10 && posiclic.y < 34)
       {
           creationend = 1;
           continuer = 0;
           quita = 1;
       }
-      if(posiclic.x >= 68 && posiclic.x <= 68*2 && posiclic.y >= 0 && posiclic.y <= 34)
+      if(posiclic.x >= 68 && posiclic.x <= 68*2 && posiclic.y >= 0 && posiclic.y < 34)
       {
           cursus = 1;
+          nombfois = 0;
           continuer = 0;
           enregistreniv(tableaucrea,level,0);
        //enregistre le fichier
@@ -1067,7 +1102,7 @@ do
     positionlignes.x = 68*1;
     afftrait(1,ecran,positionlignes,colleimagecrea);
       }
-      if(posiclic.x >= 68*2 && posiclic.x <= 68*3 && posiclic.y >= 0 && posiclic.y <= 34)
+      if(posiclic.x >= 68*2 && posiclic.x <= 68*3 && posiclic.y >= 0 && posiclic.y < 34)
       {
           cursus = 2;
           nombfois = 0;
@@ -1085,7 +1120,7 @@ do
     positionlignes.x = 68*2;
     afftrait(1,ecran,positionlignes,colleimagecrea);
       }
-       if(posiclic.x >= 68*3 && posiclic.x <= 68*4 && posiclic.y >= 0 && posiclic.y <= 34)
+       if(posiclic.x >= 68*3 && posiclic.x <= 68*4 && posiclic.y >= 0 && posiclic.y < 34)
       {
           cursus = 3;
           nombfois = 0;
@@ -1103,7 +1138,7 @@ do
     positionlignes.x = 68*3;
     afftrait(1,ecran,positionlignes,colleimagecrea);
       }
-      if(posiclic.x >= 68*4 && posiclic.x <= 68*5 && posiclic.y >= 0 && posiclic.y <= 34)
+      if(posiclic.x >= 68*4 && posiclic.x <= 68*5 && posiclic.y >= 0 && posiclic.y < 34)
       {
           cursus = 4;
           nombfois = 0;
@@ -1121,7 +1156,7 @@ do
     positionlignes.x = 68*4;
     afftrait(1,ecran,positionlignes,colleimagecrea);
       }
-      if(posiclic.x >= 68*5 && posiclic.x <= 68*6 && posiclic.y >= 0 && posiclic.y <= 34)
+      if(posiclic.x >= 68*5 && posiclic.x <= 68*6 && posiclic.y >= 0 && posiclic.y < 34)
       {
           cursus = 5;
           nombfois = 0;
@@ -1139,7 +1174,7 @@ do
     positionlignes.x = 68*5;
     afftrait(1,ecran,positionlignes,colleimagecrea);
       }
-      if(posiclic.x >= 68*6 && posiclic.x <= 68*7 && posiclic.y >= 0 && posiclic.y <= 34)
+      if(posiclic.x >= 68*6 && posiclic.x <= 68*7 && posiclic.y >= 0 && posiclic.y < 34)
       {
           cursus = 6;
           nombfois = 0;
@@ -1157,12 +1192,12 @@ do
     positionlignes.x = 68*6;
     afftrait(1,ecran,positionlignes,colleimagecrea);
       }
-      if(posiclic.x >= 68*7 && posiclic.x <= 68*9 && posiclic.y >= 0 && posiclic.y <= 34)
+      if(posiclic.x >= 68*7 && posiclic.x <= 68*9 && posiclic.y >= 0 && posiclic.y < 34)
       {
           //appelle fonction jouer
           enregistreniv(tableaucrea,level,0);
           lecture(level,tableaucrea);
-          returnplay =play(tableaucrea,caisse,posicaisse,ecran,posiclic,posiretour,posireplay,posimario,mario,retour,replay);
+          returnplay =play(tableaucrea,caisse,posicaisse,ecran,posiclic,posiretour,posireplay,posimario,mario,retour,replay,level);
           if(returnplay)
           {quit = 1;
           }
@@ -1187,123 +1222,32 @@ do
 
     if(nombfois>0)
     {
-        posiclic.x = caseposi(casesmodif(posiclic),2);
-        posiclic.y =caseposi(casesmodif(posiclic),1);
-    if(posiclic.y >0 /*|| (posiclic.y == 0 && posiclic.x>6*68)*/)
-    {
-    if(cursus == 2)
-    {tableaucrea[cases(posiclic)-1] =3;
-    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/crate.bmp");
-    SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
-    }
-    if(cursus == 3)
-    {
-       pass = 0;
-     while(pass < 80)
-     {
-         if(tableaucrea[pass] == 5)
-         {
-             pass = 100;
-         }
-         pass ++;
-     }
-     if(pass <100)
-    {tableaucrea[cases(posiclic)-1] =5;
-    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/keeper_down.bmp");
-    SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
-    }
-    }
-    if(cursus == 4)
-    {tableaucrea[cases(posiclic)-1] =1;
-    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/wall.bmp");
-    SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
-    }
-    if(cursus == 5)
-    {tableaucrea[cases(posiclic)-1] =4;
-    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/target.bmp");
-    SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
-    }
-    if(cursus == 6)
-    {tableaucrea[cases(posiclic)-1] =2;
-    colleimagecrea=SDL_LoadBMP("sprites_mario_sokoban/floor.bmp");
-    SDL_BlitSurface(colleimagecrea,NULL,ecran,&posiclic);
+      if(posiclic.x>=0 && posiclic.x<680 && posiclic.y>=34 && posiclic.y<544)
+      {
+        const int column=posiclic.x/68;
+        const int row=posiclic.y/68;
+        const int cell=row*10+column;
+        int value=tableaucrea[cell];
+        if(cursus==3){
+            for(int old=0;old<80;++old){
+                if(tableaucrea[old]==5){
+                    tableaucrea[old]=2;
+                    SDL_Rect oldAt={static_cast<Sint16>((old%10)*68),static_cast<Sint16>((old/10)*68),0,0};
+                    redraw_board_cell(ecran,2,oldAt);
+                }
+            }
+            value=5;
+        } else if(cursus==2){value=(value==4||value==6)?6:3;}
+        else if(cursus==4){value=1;}
+        else if(cursus==5){value=(value==3||value==6)?6:4;}
+        else if(cursus==6){value=2;}
+        if(cursus>=2 && cursus<=6){
+            tableaucrea[cell]=value;
+            SDL_Rect at={static_cast<Sint16>(column*68),static_cast<Sint16>(row*68),0,0};
+            redraw_board_cell(ecran,value,at);
+        }
     }
 
-    }
-    else
-    {
-
-        if(cursus == 2)
-    {tableaucrea[cases(posiclic)-1] =3;
-    posiclic.y +=34;
-    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/crate_editor.bmp");
-    SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
-    posiclic.y -=34;
-    }
-    if(cursus == 3)
-    {
-     pass = 0;
-     while(pass < 80)
-     {
-         if(tableaucrea[pass] == 5)
-         {
-             pass = 100;
-         }
-         pass ++;
-     }
-     if(pass <100)
-    {tableaucrea[cases(posiclic)-1] =5;
-    posiclic.y +=34;
-    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/keeper_editor.bmp");
-    SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
-    posiclic.y -=34;
-    }
-    }
-    if(cursus == 4)
-    {tableaucrea[cases(posiclic)-1] =1;
-    posiclic.y +=34;
-    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/wall_editor.bmp");
-    SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
-    posiclic.y -=34;
-    }
-    if(cursus == 5)
-    {tableaucrea[cases(posiclic)-1] =4;
-    posiclic.y +=34;
-    colleimagecrea= SDL_LoadBMP ("sprites_mario_sokoban/target_editor.bmp");
-    SDL_BlitSurface(colleimagecrea , NULL, ecran, &posiclic );
-    posiclic.y -=34;
-    }
-    if(cursus == 6)
-    {tableaucrea[cases(posiclic)-1] =2;
-    posiclic.y +=34;
-    colleimagecrea=SDL_LoadBMP("sprites_mario_sokoban/floor.bmp");
-    SDL_Rect floorHalf={0,34,68,34};
-    SDL_BlitSurface(colleimagecrea,&floorHalf,ecran,&posiclic);
-    posiclic.y -=34;
-    }
-    }
-arrete = 0;
-    positionlignes.y = 0;
-    positionlignes.x = 0;
-    lignesvar = 0;
-     while(arrete < 8)
-    {
-
-        lignes[lignesvar] = SDL_CreateRGBSurface(SDL_HWSURFACE, 680, 1, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-        SDL_FillRect(lignes[lignesvar], NULL, SDL_MapRGB(ecran->format,0,0, 0));//couleur du rectangle
-
-        SDL_BlitSurface(lignes[lignesvar], NULL, ecran, &positionlignes); // Collage
-
-        positionlignes.y += 68;
-        lignesvar++;
-        arrete++;
-
-    }
-    positionlignes.y = 34;
-    positionlignes.x = 68;//544 mais en longeur(première ligne)
-    colleimagecrea= SDL_CreateRGBSurface(SDL_HWSURFACE, 544, 1, 16, 0, 0,0, 0);//dimension et mode de couleur du rectangle
-    SDL_FillRect(colleimagecrea, NULL, SDL_MapRGB(ecran->format,0,0, 0));//couleur du rectangle
-    SDL_BlitSurface(colleimagecrea, NULL, ecran, &positionlignes); // Collage
     arrete = 0;
     positionlignes.y = 0;
     positionlignes.x = 0;
@@ -1439,7 +1383,61 @@ void redraw_board_cell(SDL_Surface* ecran, int value, SDL_Rect at)
     else if(value==3)asset="sprites_mario_sokoban/crate.bmp";
     else if(value==4)asset="sprites_mario_sokoban/target.bmp";
     else if(value==6)asset="sprites_mario_sokoban/crate_target.bmp";
-    if(asset){tile=SDL_LoadBMP(asset);if(tile){SDL_BlitSurface(tile,NULL,ecran,&at);SDL_FreeSurface(tile);}}
+    if(value==5){tile=load_character_png("sprites_mario_sokoban/keeper_down.png");if(tile){SDL_BlitSurface(tile,NULL,ecran,&at);SDL_FreeSurface(tile);}}
+    else if(asset){tile=SDL_LoadBMP(asset);if(tile){SDL_BlitSurface(tile,NULL,ecran,&at);SDL_FreeSurface(tile);}}
+}
+
+SDL_Surface* load_character_png(const char* pngPath)
+{
+#ifdef _WIN32
+    HRESULT comInit = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+    bool uninitializeCom = SUCCEEDED(comInit);
+    IWICImagingFactory *factory = NULL;
+    IWICBitmapDecoder *decoder = NULL;
+    IWICBitmapFrameDecode *frame = NULL;
+    IWICFormatConverter *converter = NULL;
+    SDL_Surface *surface = NULL;
+    WCHAR widePath[MAX_PATH] = {0};
+    if (MultiByteToWideChar(CP_UTF8, 0, pngPath, -1, widePath, MAX_PATH) > 0 &&
+        SUCCEEDED(CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER,
+                                   IID_PPV_ARGS(&factory))) &&
+        SUCCEEDED(factory->CreateDecoderFromFilename(widePath, NULL, GENERIC_READ,
+                                                      WICDecodeMetadataCacheOnLoad, &decoder)) &&
+        SUCCEEDED(decoder->GetFrame(0, &frame)) &&
+        SUCCEEDED(factory->CreateFormatConverter(&converter))) {
+        UINT width = 0, height = 0;
+        if (SUCCEEDED(frame->GetSize(&width, &height)) && width > 0 && height > 0 &&
+            width <= 4096 && height <= 4096 &&
+            SUCCEEDED(converter->Initialize(frame, GUID_WICPixelFormat32bppRGBA,
+                         WICBitmapDitherTypeNone, NULL, 0.0, WICBitmapPaletteTypeCustom))) {
+            std::vector<Uint8> rgba(static_cast<size_t>(width) * height * 4);
+            if (SUCCEEDED(converter->CopyPixels(NULL, width * 4,
+                    static_cast<UINT>(rgba.size()), rgba.data()))) {
+                surface = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32,
+                    0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+                if (surface) {
+                    if (SDL_MUSTLOCK(surface)) SDL_LockSurface(surface);
+                    for (UINT row = 0; row < height; ++row)
+                        memcpy(static_cast<Uint8*>(surface->pixels) + row * surface->pitch,
+                               rgba.data() + static_cast<size_t>(row) * width * 4, width * 4);
+                    if (SDL_MUSTLOCK(surface)) SDL_UnlockSurface(surface);
+                    SDL_SetAlpha(surface, SDL_SRCALPHA, 255);
+                }
+            }
+        }
+    }
+    if (converter) converter->Release();
+    if (frame) frame->Release();
+    if (decoder) decoder->Release();
+    if (factory) factory->Release();
+    if (uninitializeCom) CoUninitialize();
+    if (surface) return surface;
+#endif
+    std::string bmpPath = pngPath ? pngPath : "";
+    const std::string suffix = ".png";
+    if (bmpPath.size() >= suffix.size() && bmpPath.compare(bmpPath.size()-suffix.size(), suffix.size(), suffix) == 0)
+        bmpPath.replace(bmpPath.size()-suffix.size(), suffix.size(), ".bmp");
+    return SDL_LoadBMP(bmpPath.c_str());
 }
 
 void pause()
@@ -1449,6 +1447,7 @@ void pause()
     while (continuer)
     {
         SDL_WaitEvent(&event);
+
         switch(event.type)
         {
         case SDL_QUIT:
@@ -1467,6 +1466,7 @@ void choixniv(SDL_Surface* ecran)
         draw_game_text(ecran,font,"CHOISIS TON NIVEAU",title,SDL_Color{255,245,205});
         const int xs[6]={120,285,450,120,285,450};
         const int ys[6]={150,150,150,250,250,250};
+        SDL_Surface *badge=SDL_LoadBMP("sprites_mario_sokoban/medal_small.bmp");
         for(int level=1;level<=6;++level){
             int index=level-1, map[80];
             for(int cell=0;cell<80;++cell)map[cell]=tableau(level,cell);
@@ -1476,7 +1476,12 @@ void choixniv(SDL_Surface* ecran)
             char label[4];snprintf(label,sizeof(label),"%d",level);
             SDL_Rect number={static_cast<Sint16>(xs[index]+31),static_cast<Sint16>(ys[index]+49),0,0};
             draw_game_text(ecran,font,label,number,SDL_Color{255,245,205});
+            char progressPath[64]; snprintf(progressPath,sizeof(progressPath),"data/completed%d.lvl",level);
+            FILE *progress=fopen(progressPath,"r"); int completed=0;
+            if(progress){fscanf(progress,"%d",&completed);fclose(progress);}
+            if(completed && badge){SDL_Rect medalAt={static_cast<Sint16>(xs[index]+48),static_cast<Sint16>(ys[index]+5),0,0};SDL_BlitSurface(badge,NULL,ecran,&medalAt);}
         }
+        if(badge)SDL_FreeSurface(badge);
         draw_ui_button(ecran,font,"NIVEAUX PERSO",SDL_Rect{120,350,404,70});
         TTF_CloseFont(font);
     }
@@ -1605,7 +1610,7 @@ void load(SDL_Surface *ecran, int niveau,int tableau1[])
                     if( a == 5)
                     {
 
-                        carre = SDL_LoadBMP ("sprites_mario_sokoban/keeper_up.bmp");
+                        carre = load_character_png("sprites_mario_sokoban/keeper_up.png");
                          SDL_BlitSurface(carre , NULL, ecran, &posicarre );
 
 
@@ -1975,6 +1980,9 @@ int victoire(SDL_Surface* ecran)
     SDL_Event event;
     for(;;){
         SDL_WaitEvent(&event);
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) { SDL_WM_ToggleFullScreen(ecran); continue; }
+
+
         if(event.type==SDL_QUIT){TTF_Quit();return 4;}
         if(event.type==SDL_MOUSEBUTTONUP){
             SDL_Rect click={static_cast<Sint16>(event.button.x),static_cast<Sint16>(event.button.y),0,0};
@@ -2013,6 +2021,11 @@ void affvict(SDL_Surface* ecran,SDL_Rect posivict, int fois,SDL_Surface* affiche
 
 void save(int niveau)
 {
+    if(niveau>=1 && niveau<=6){
+        char completedPath[64];snprintf(completedPath,sizeof(completedPath),"data/completed%d.lvl",niveau);
+        FILE *completed=fopen(completedPath,"w");
+        if(completed){fputs("1",completed);fclose(completed);}
+    }
     FILE*score =NULL;
     if(niveau == 1)
     {score = fopen("data/open1.lvl","w+");
@@ -2408,6 +2421,10 @@ int niveaucrea(SDL_Surface* ecran,SDL_Rect posiclic)
             char label[24]; snprintf(label,sizeof(label),"NIVEAU %d",level);
             SDL_Rect labelAt={static_cast<Sint16>(cardX[col]+15),static_cast<Sint16>(cardY[row]+79),0,0};
             draw_game_text(ecran,font,label,labelAt,SDL_Color{255,245,205});
+            char completedPath[64];snprintf(completedPath,sizeof(completedPath),"data/custom_completed%d.lvl",level);
+            FILE *progress=fopen(completedPath,"r");int completed=0;
+            if(progress){fscanf(progress,"%d",&completed);fclose(progress);}
+            if(completed){SDL_Surface *badge=SDL_LoadBMP("sprites_mario_sokoban/medal_small.bmp");if(badge){SDL_Rect medalAt={static_cast<Sint16>(cardX[col]+132),static_cast<Sint16>(cardY[row]+4),0,0};SDL_BlitSurface(badge,NULL,ecran,&medalAt);SDL_FreeSurface(badge);}}
         }
         TTF_CloseFont(font);
     }
@@ -2415,6 +2432,9 @@ int niveaucrea(SDL_Surface* ecran,SDL_Rect posiclic)
     SDL_Event event;
     for(;;){
         SDL_WaitEvent(&event);
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) { SDL_WM_ToggleFullScreen(ecran); continue; }
+
+
         if(event.type==SDL_QUIT){TTF_Quit();return 0;}
         if(event.type!=SDL_MOUSEBUTTONUP)continue;
         posiclic.x=event.button.x;posiclic.y=event.button.y;
@@ -2465,6 +2485,9 @@ int tobesur(SDL_Surface* ecran,SDL_Rect posiclic)
    while (continuer)
     {
        SDL_WaitEvent(&event);
+       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) { SDL_WM_ToggleFullScreen(ecran); continue; }
+
+
      switch(event.type)
     {
         case SDL_QUIT:
@@ -2497,7 +2520,7 @@ int tobesur(SDL_Surface* ecran,SDL_Rect posiclic)
      TTF_CloseFont(police); /* Doit être avant TTF_Quit() */
     TTF_Quit();//quitte la biblio texte
 }
-int play(int tableau1[],SDL_Surface* caisse,SDL_Rect posicaisse,SDL_Surface* ecran,SDL_Rect posiclic,SDL_Rect posiretour,SDL_Rect posireplay,SDL_Rect posimario,SDL_Surface* mario,SDL_Surface* retour,SDL_Surface* replay)
+int play(int tableau1[],SDL_Surface* caisse,SDL_Rect posicaisse,SDL_Surface* ecran,SDL_Rect posiclic,SDL_Rect posiretour,SDL_Rect posireplay,SDL_Rect posimario,SDL_Surface* mario,SDL_Surface* retour,SDL_Surface* replay,int customLevel)
 {
         int finpartie = 2,quit = 0,niveau =0,endwhile = 0,continuer = 1,fois= 0,ouinon =0,mariohere = 0;
         int i =0,a=0,objec =0;
@@ -2581,6 +2604,9 @@ fois=0;
    while (continuer == 1 && quit == 0 && endwhile == 0)
        {
          SDL_WaitEvent(&event);
+         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) { SDL_WM_ToggleFullScreen(ecran); continue; }
+
+
              switch(event.type)
            {
           case SDL_QUIT:
@@ -2598,7 +2624,7 @@ fois=0;
 
          posimario.y -= 68;
 
-     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_up.bmp");
+     mario = load_character_png("sprites_mario_sokoban/keeper_up.png");
       if(verif(niveau,posimario,tableau1,1) == 1 )
            {
                posimario.y += 68;
@@ -2631,7 +2657,7 @@ fois=0;
      {
 
          posimario.y += 68;
-     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_down.bmp");
+     mario = load_character_png("sprites_mario_sokoban/keeper_down.png");
       if(verif(niveau,posimario,tableau1,4) == 1)
            {
                posimario.y -= 68;
@@ -2689,7 +2715,7 @@ fois=0;
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.x -= 68;
             }
-     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_right.bmp");
+     mario = load_character_png("sprites_mario_sokoban/keeper_right.png");
 
      }
      if(event.key.keysym.sym == SDLK_LEFT)
@@ -2722,7 +2748,7 @@ fois=0;
                 SDL_BlitSurface(caisse, NULL, ecran, &posicaisse);
                 posimario.x += 68;
            }
-     mario = SDL_LoadBMP("sprites_mario_sokoban/keeper_left.bmp");
+     mario = load_character_png("sprites_mario_sokoban/keeper_left.png");
      }
          break;
          case SDL_MOUSEBUTTONUP: /* Clic de la souris */
@@ -2779,6 +2805,11 @@ while(i<a)
 }
 if(objec == a && a != 0)
 {
+    if(customLevel>=1 && customLevel<=9){
+        char completedPath[64];snprintf(completedPath,sizeof(completedPath),"data/custom_completed%d.lvl",customLevel);
+        FILE *completed=fopen(completedPath,"w");
+        if(completed){fputs("1",completed);fclose(completed);}
+    }
     ouinon=affonlyvictyouinon(ecran,posiclic);
     if(ouinon == 4)
     return 1;
@@ -2825,6 +2856,9 @@ int affonlyvictyouinon(SDL_Surface* ecran,SDL_Rect posiclic)
     SDL_Event event;
     for(;;){
         SDL_WaitEvent(&event);
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) { SDL_WM_ToggleFullScreen(ecran); continue; }
+
+
         if(event.type==SDL_QUIT){TTF_Quit();return 4;}
         if(event.type==SDL_MOUSEBUTTONUP){
             if(event.button.x>=20&&event.button.x<=297&&event.button.y>=250&&event.button.y<=320){TTF_Quit();return 1;}
@@ -2891,6 +2925,9 @@ int affcomplet(SDL_Surface* ecran,SDL_Rect posiclic)
    while (continuer)
     {
        SDL_WaitEvent(&event);
+       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) { SDL_WM_ToggleFullScreen(ecran); continue; }
+
+
      switch(event.type)
     {
         case SDL_QUIT:

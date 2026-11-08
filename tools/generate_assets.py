@@ -175,9 +175,28 @@ for filename, kind in {
 }.items():
     save(filename, tile(kind, facing=filename.removeprefix("keeper_").removesuffix(".bmp") if filename.startswith("keeper_") else "down"))
 
-# The executable window icon is generated from the same original crate motif.
-tile("crate", (32, 32)).save(ROOT / "caisse.bmp", format="BMP")
-tile("crate", (32, 32)).save(ROOT / "caisse.ico", format="ICO")
+# Character PNGs have transparent backgrounds and are the runtime artwork on Windows.
+# Matching BMPs remain available for SDL 1.2 platforms without WIC.
+character_pngs = {}
+for facing in ("down", "up", "left", "right", "editor"):
+    sprite = tile("keeper", (68, 68), facing).convert("RGBA")
+    pixels = sprite.load()
+    for py in range(sprite.height):
+        for px in range(sprite.width):
+            if pixels[px, py][:3] == PALETTE["cream"]:
+                pixels[px, py] = (0, 0, 0, 0)
+    character_pngs[facing] = sprite
+    sprite.save(OUT / f"keeper_{facing}.png", format="PNG", optimize=True)
+
+# Use the protagonist for both the SDL window icon and the native executable icon.
+icon_source = character_pngs["down"]
+icon_bmp = Image.new("RGB", (68, 68), PALETTE["cream"])
+icon_bmp.paste(icon_source, mask=icon_source.getchannel("A"))
+icon_bmp.resize((32, 32), Image.Resampling.LANCZOS).save(ROOT / "caisse.bmp", format="BMP")
+icon_source.save(ROOT / "caisse.ico", format="ICO", sizes=[(16,16),(32,32),(48,48),(64,64),(128,128)])
+
+# A small reward badge fits in the corner of a level card.
+Image.open(OUT / "medal.bmp").resize((22,22), Image.Resampling.LANCZOS).save(OUT / "medal_small.bmp", format="BMP")
 
 for filename in ("menu.bmp", "garden.bmp", "editor.bmp", "garden_detail.bmp"):
     # The SDL 1.2 menu fills the 680x544 window. Keep the generated screen
