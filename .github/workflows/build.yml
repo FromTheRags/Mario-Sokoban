@@ -41,9 +41,9 @@ jobs:
       - uses: libsdl-org/setup-sdl@main
         id: sdl
         with:
-          version: 3.4.20
-          version-sdl-image: 3.4.8
-          version-sdl-ttf: 3.2.2
+          version: 3-latest
+          version-sdl-ttf: 3-latest
+
           install-linux-dependencies: true
       - name: Configure and build
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{ steps.sdl.outputs.prefix }}

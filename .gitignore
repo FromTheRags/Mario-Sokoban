@@ -9,3 +9,4 @@
 *.cbp
 *.iss
 setup_*.exe
+/cmake-build-*/

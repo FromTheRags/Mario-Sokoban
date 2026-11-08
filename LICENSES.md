@@ -1,35 +1,25 @@
-# Third-party and generated asset notices
+# Licences et provenance des ressources
 
-## SDL 1.2 runtime
+## SDL 3 et SDL_ttf 3
 
-The legacy build dynamically links against the upstream SDL 1.2 runtime and
-SDL_image / SDL_ttf add-ons supplied by the build runner. The Linux CI artifact
-bundles the SDL shared libraries beside the executable. SDL 1.2 is licensed
-under GNU LGPL 2.1; see the upstream [SDL 1.2 source and license](https://github.com/libsdl-org/SDL-1.2).
-The license text is included in `SDL-1.2-LGPL-2.1.txt`, and users can replace
-the shared library in the Linux artifact.
-
-SDL_image and SDL_ttf are distributed under the zlib license. Their sources
-and notices are available from [SDL_image](https://github.com/libsdl-org/SDL_image)
-and [SDL_ttf](https://github.com/libsdl-org/SDL_ttf); their license texts are
-included as `SDL-image-zlib.txt` and `SDL-ttf-zlib.txt`.
-
-## SDL 3 port
-
-The `SDL_3` branch dynamically links against SDL 3.4.20, SDL3_image, and
-SDL3_ttf. SDL 3 and its satellite libraries use the zlib license; the Linux CI
-artifact bundles the runtime libraries beside the executable.
+La branche `SDL_3` utilise les API natives de SDL 3 et SDL_ttf 3. Les deux
+bibliothèques sont distribuées sous licence zlib. La CI GitHub utilise
+`libsdl-org/setup-sdl` pour récupérer leurs versions stables les plus récentes
+et inclut les bibliothèques dynamiques requises dans l’archive Linux.
+Les textes de ces licences sont fournis dans `SDL3-zlib.txt` et
+`SDL3-ttf-zlib.txt`.
 
 ## Noto Sans
 
-The bundled font data is Noto Sans from the Google Fonts project, licensed
-under the SIL Open Font License 1.1. See `NotoSans-OFL.txt` and
-[the upstream font directory](https://github.com/google/fonts/tree/main/ofl/notosans).
+La police fournie est Noto Sans du projet Google Fonts, sous licence SIL Open
+Font License 1.1. La licence est incluse dans `NotoSans-OFL.txt`.
 
-## Game artwork
+## Illustrations du jeu
 
-All images in `sprites_mario_sokoban/`, plus `caisse.bmp` and `caisse.ico`,
-were newly drawn from geometric primitives by `tools/generate_assets.py` for
-this project and are dedicated to the public domain under CC0 1.0. They do not
-use extracted game characters, logos, screenshots, or source textures.
-The CC0 1.0 legal code is available from [Creative Commons](https://creativecommons.org/publicdomain/zero/1.0/).
+Les images dans `sprites_mario_sokoban/`, ainsi que `caisse.bmp` et `caisse.ico`,
+ont été créées à partir de formes géométriques par `tools/generate_assets.py`.
+Elles sont dédiées au domaine public sous CC0 1.0. Elles ne réutilisent pas
+les personnages, logos, captures ou textures du jeu d’origine.
+
+Le code et le nom du projet d’origine n’ont pas été réécrits dans le cadre de
+l’audit des ressources.

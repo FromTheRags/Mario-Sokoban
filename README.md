@@ -1,27 +1,36 @@
-# Mario Sokoban
+# Mario Sokoban – SDL 3
 
-This repository contains the original SDL 1.2 game and a separate SDL 3 port
-on the `SDL_3` branch. CI builds the selected branch and uploads a runnable
-Linux artifact. Tag a release as `v*` on the SDL 1.2 branch or `sdl3-v*` on
-`SDL_3` to publish the matching package as a GitHub release. Extract the
-`.tar.gz` artifact, enter its `package` folder, and start `./run.sh`.
+Cette branche contient une réécriture native pour SDL 3. Elle utilise directement
+les API SDL 3 et SDL_ttf 3, sans couche d’adaptation des fonctions SDL 1.2.
+Les graphismes sont les assets originaux générés par `tools/generate_assets.py`
+et dédiés au domaine public (CC0 1.0).
 
-The SDL 3 branch targets SDL 3.4.20, SDL3_image 3.4.8, and SDL3_ttf 3.2.2.
-`legacy_sdl3.hpp` adapts the old screen-surface and event calls to SDL 3 while
-preserving the existing menus, editor, levels, and Sokoban rules.
+## Build avec CMake et CLion
 
-## Build the SDL 1.2 version
-
-On Ubuntu 22.04, install CMake, a C++ compiler, pkg-config, SDL 1.2, SDL_image,
-and SDL_ttf development packages, then run:
+Installez SDL 3 et SDL_ttf 3 avec leurs paquets CMake, puis configurez avec :
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
-./tools/package_linux.sh build/package
 ```
 
-Run `build/package/mario-sokoban` with `build/package` as the working
-directory. The packaged SDL 1.2 runtime remains dynamically linked and can be
-replaced, in keeping with LGPL 2.1. Asset generation and licensing details are
-in [LICENSES.md](LICENSES.md).
+L’exécutable et les ressources sont copiés dans `build/package`. Pour une
+compilation sur Ubuntu via GitHub Actions, la CI installe les dernières versions
+SDL 3 et SDL_ttf 3 avant de compiler et d’archiver l’application.
+Pour lancer le jeu depuis un build local, exécutez `build/package/mario-sokoban`
+avec `build/package` comme répertoire de travail.
+
+## Commandes
+
+- Flèches ou ZQSD pour déplacer le gardien
+- `R` pour recommencer le niveau
+- `1` à `9` pour sélectionner un niveau
+- `N` pour charger le niveau suivant
+- `E` pour ouvrir l’éditeur, touches `1` à `5` pour choisir mur/sol/caisse/but/gardien, clic pour placer
+- `S` pour enregistrer le niveau 10, `O` pour le recharger
+- `Échap` pour quitter
+
+Le jeu reprend les neuf niveaux de 10 × 8 cases et inclut un éditeur natif SDL 3
+pour enregistrer un niveau personnalisé dans `niveaux perso/niveau10.txt`.
+Consultez [LICENSES.md](LICENSES.md) pour les licences des dépendances et des
+ressources.

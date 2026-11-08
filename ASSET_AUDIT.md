@@ -1,20 +1,16 @@
-# Asset audit
+# Audit des ressources
 
-The original 2013 project included uncredited Mario character sprites, a dragon
-image, several photographic or textured backgrounds, editor icons, Photoshop
-PXDs, and six typefaces with no license information in the repository. Their
-source and permissions could not be established from the files provided, so
-the old artwork and fonts were not carried into the source history.
+Le projet fourni contenait des sprites de personnages non attribués, une image
+de dragon, des arrière-plans photographiques ou texturés, des icônes d’éditeur,
+des fichiers Photoshop et plusieurs polices sans information de licence. La
+source et les autorisations de ces ressources n’ont pas pu être établies à
+partir du dépôt.
 
-- All images used by the game were regenerated as original garden-themed
-  pixel art by `tools/generate_assets.py`; they are dedicated under CC0 1.0.
-- Noto Sans replaced the undocumented typefaces; its SIL Open Font License is
-  included in `NotoSans-OFL.txt`.
-- A single font file is shared throughout the source.
-- The original Photoshop files and unused icon were excluded.
-- The source code and the product name were not rewritten as part of this
-  resource audit.
+- Les anciennes images de jeu ont été retirées des branches SDL 1.2 et SDL 3.
+- Tous les visuels utilisés sont générés par `tools/generate_assets.py` à partir
+de formes géométriques originales et dédiés au domaine public sous CC0 1.0.
+- Noto Sans remplace les polices sans licence connue; sa licence OFL est incluse.
+- Les fichiers Photoshop et l’icône inutilisée ne sont pas distribués.
 
-This is a repository-level provenance review of supplied visual resources;
-it does not establish the authorship or licensing of the original source code
-or name.
+Cet audit porte sur les fichiers visuels et polices fournis; il ne détermine pas
+l’auteur ni la licence du code source ou du nom d’origine.
