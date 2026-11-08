@@ -17,6 +17,11 @@ set_target_properties(mario-sokoban PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE
 target_include_directories(mario-sokoban PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL-1.2/include")
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(mario-sokoban PRIVATE -finput-charset=ISO-8859-1)
+    if(WIN32)
+        # CLion's MinGW runtime is not on PATH when the packaged executable is
+        # launched, so embed libstdc++ and libgcc in the executable.
+        target_link_options(mario-sokoban PRIVATE -static-libgcc -static-libstdc++)
+    endif()
 endif()
 
 if(WIN32)
@@ -58,6 +63,13 @@ if(WIN32)
     add_custom_command(TARGET mario-sokoban POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:SDL12>" "$<TARGET_FILE_DIR:mario-sokoban>"
     )
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        get_filename_component(MINGW_RUNTIME_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+        add_custom_command(TARGET mario-sokoban POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${MINGW_RUNTIME_DIR}/libwinpthread-1.dll" "$<TARGET_FILE_DIR:mario-sokoban>"
+        )
+    endif()
 else()
     find_path(SDL12_INCLUDE_DIR NAMES SDL/SDL.h REQUIRED)
     find_library(SDL12_LIBRARY NAMES SDL SDL-1.2 REQUIRED)
