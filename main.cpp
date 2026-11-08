@@ -60,8 +60,8 @@ int main ( int argc, char* argv[] )
 
     SDL_Surface *image_demarrage = NULL,*ecran_partie = NULL,*ecran_dev =NULL,*mario = NULL,*caisse = NULL,*replay=NULL,*retour=NULL,*victoireyou=NULL,*colleimagecrea = NULL;
     SDL_Rect pimage_demarrage,posi_partie,posi_dev,posimario,posicaisse,posireplay,posiretour,posivictoireyou,posicolleimagecrea;
-    pimage_demarrage.x = 130;
-    pimage_demarrage.y = 30;
+    pimage_demarrage.x = 0;
+    pimage_demarrage.y = 0;
     posi_partie.x = 0;
     posi_partie.y = 0;
     posi_dev.x = 0;
@@ -120,6 +120,26 @@ while(finpartie < 4 && quit == 0)
     texte = TTF_RenderText_Blended(police, "créé par Rémi Fache....",couleurorange);
     SDL_BlitSurface(texte, NULL, ecran, &positexte); /* Blit du texte par-dessus */
     TTF_CloseFont(police); /* Doit être avant TTF_Quit() */
+
+    police = TTF_OpenFont("NotoSans.ttf", 40);
+    SDL_Color couleurtexte = {255, 245, 205};
+    SDL_Color couleurfond = {32, 55, 84};
+    texte = TTF_RenderText_Shaded(police, "MARIO SOKOBAN", couleurtexte, couleurfond);
+    positexte.x = 225;
+    positexte.y = 75;
+    SDL_BlitSurface(texte, NULL, ecran, &positexte);
+    SDL_FreeSurface(texte);
+    texte = TTF_RenderText_Shaded(police, "1 - JOUER", couleurtexte, couleurfond);
+    positexte.x = 248;
+    positexte.y = 218;
+    SDL_BlitSurface(texte, NULL, ecran, &positexte);
+    SDL_FreeSurface(texte);
+    texte = TTF_RenderText_Shaded(police, "2 - CREER", couleurtexte, couleurfond);
+    positexte.x = 248;
+    positexte.y = 262;
+    SDL_BlitSurface(texte, NULL, ecran, &positexte);
+    SDL_FreeSurface(texte);
+    TTF_CloseFont(police);
 
     SDL_Flip(ecran);
 

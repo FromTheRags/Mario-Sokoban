@@ -113,10 +113,20 @@ tile("crate", (32, 32)).save(ROOT / "caisse.bmp", format="BMP")
 tile("crate", (32, 32)).save(ROOT / "caisse.ico", format="ICO")
 
 for filename in ("menu.bmp", "garden.bmp", "editor.bmp", "garden_detail.bmp"):
-    # Preserve the legacy window dimensions while replacing their artwork.
+    # The SDL 1.2 menu fills the 680x544 window. Keep the generated screen
+    # full-size so the artwork never crops the visible choices.
     old = OUT / filename
     try:
         with Image.open(old) as prior: size = prior.size
     except Exception: size = (680, 544)
-    save(filename, backdrop(size, title=filename == "menu1.png"))
+    if filename == "menu.bmp":
+        size = (680, 544)
+    image = backdrop(size, title=filename == "menu.bmp")
+    if filename == "menu.bmp":
+        draw = ImageDraw.Draw(image)
+        draw.rounded_rectangle((176, 210, 480, 255), radius=11, fill=PALETTE["green"], outline=PALETTE["ink"], width=4)
+        draw.rounded_rectangle((176, 257, 480, 302), radius=11, fill=PALETTE["blue"], outline=PALETTE["ink"], width=4)
+        draw.line((192, 217, 464, 217), fill=PALETTE["leaf"], width=3)
+        draw.line((192, 264, 464, 264), fill=PALETTE["sky"], width=3)
+    save(filename, image)
 
