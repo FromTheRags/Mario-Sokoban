@@ -39,12 +39,23 @@ set_target_properties(mario-sokoban PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/package"
 )
 target_link_libraries(mario-sokoban PRIVATE SDL3::SDL3 SDL3_ttf::SDL3_ttf)
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # Do not require CLion's MinGW bin directory to be present on PATH at run time.
+    target_link_options(mario-sokoban PRIVATE -static-libgcc -static-libstdc++)
+endif()
 
 set(PACKAGE_DIR "$<TARGET_FILE_DIR:mario-sokoban>")
 if(WIN32)
     add_custom_command(TARGET mario-sokoban POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_RUNTIME_DLLS:mario-sokoban> "${PACKAGE_DIR}"
         COMMAND_EXPAND_LISTS
+    )
+endif()
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    get_filename_component(MINGW_RUNTIME_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+    add_custom_command(TARGET mario-sokoban POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${MINGW_RUNTIME_DIR}/libwinpthread-1.dll" "${PACKAGE_DIR}"
     )
 endif()
 add_custom_command(TARGET mario-sokoban POST_BUILD
