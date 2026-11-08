@@ -173,7 +173,7 @@ while(finpartie < 4 && quit == 0)
       case SDL_MOUSEBUTTONUP: /* Clic de la souris */
       posiclic.x = event.button.x; /* change les coordonnées de posiclic*/
       posiclic.y = event.button.y;
-      if(posiclic.x >= 186 && posiclic.x <= 330 && posiclic.y >= 222 && posiclic.y <= 252)
+      if(posiclic.x >= 176 && posiclic.x <= 480 && posiclic.y >= 210 && posiclic.y <= 255)
       {partie =1;
       continuer=0;
       }
