@@ -27,9 +27,12 @@ Les captures sont identiques pour les versions SDL 1.2 et SDL 3.
 Le workflow GitHub Actions (`.github/workflows/build.yml`) compile le jeu à
 chaque push :
 
-- **Linux** (Ubuntu 22.04, SDL 3 installé par `libsdl-org/setup-sdl`) :
+- **Linux** (dernier runner Ubuntu, SDL 3 installé par `libsdl-org/setup-sdl`) :
   `mario-sokoban-sdl3-linux.tar.gz`. Décompressez-la, entrez dans le dossier
   `package` et lancez `./run.sh`.
+- **Linux legacy** (compilé dans un conteneur Ubuntu 20.04, SDL 3 compilé
+  depuis les sources) : `mario-sokoban-sdl3-linux-legacy.tar.gz`, même
+  utilisation, pour les distributions plus anciennes.
 - **Windows** (MSYS2 MinGW-w64, SDK SDL 3 officiel téléchargé par CMake) :
   `mario-sokoban-sdl3-windows.zip`, version portable (lancez
   `mario-sokoban.exe`), et `setup_mario_sokoban_sdl3-<version>.exe`, un
@@ -39,7 +42,21 @@ Les fichiers sont disponibles dans les artefacts de chaque exécution. Pousser
 un tag `sdl3-v<version>` (par exemple `sdl3-v1.6`) les publie aussi dans une
 release GitHub ; le numéro de version est repris par l’installateur.
 
+### Systèmes pris en charge
+
+| Téléchargement | Prérequis | Exemples |
+| --- | --- | --- |
+| `mario-sokoban-sdl3-linux` | glibc du dernier Ubuntu (2.39 avec Ubuntu 24.04) | Ubuntu 24.04+, Debian 13+, Fedora 40+ |
+| `mario-sokoban-sdl3-linux-legacy` | glibc 2.31 ou plus récente | Ubuntu 20.04+, Debian 11+, Fedora 32+ |
+| Zip / installateur Windows | Windows 64 bits | Windows 10 et 11 |
+
+SDL 3 et les autres bibliothèques sont fournis dans `package/lib` ; seule la
+bibliothèque C (glibc) vient du système, d’où la version minimale. L’archive
+legacy fonctionne aussi sur les distributions récentes.
+
 ## Jouer
+
+Les règles complètes sont dans [REGLES.md](REGLES.md).
 
 - `1 - JOUER` : six niveaux intégrés avec médaille et top 3 des meilleurs
   temps, et `NIVEAUX PERSO` pour jouer aux niveaux personnels.
