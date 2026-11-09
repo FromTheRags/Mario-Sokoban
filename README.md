@@ -3,6 +3,11 @@
 A Sokoban game in C++ with SDL 1.2 (this branch, `master`). The `SDL_3` branch
 contains an SDL 3 port with the same screens, graphics and texts.
 
+> **Note:** an SDL 3 version of the game is available on the
+> [`SDL_3` branch](https://github.com/FromTheRags/Mario-Sokoban/tree/SDL_3).
+> It has the same screens, graphics and texts and its own releases
+> (tags `sdl3-v*`).
+
 ![Gameplay](docs/gameplay.gif)
 
 | Main menu | Level selection |
@@ -16,8 +21,10 @@ contains an SDL 3 port with the same screens, graphics and texts.
 The GitHub Actions workflow (`.github/workflows/build.yml`) builds the game on
 every push:
 
-- **Linux** (Ubuntu 22.04): `mario-sokoban-linux.tar.gz`. Extract it, enter
-  the `package` folder and start `./run.sh`.
+- **Linux** (built on the latest Ubuntu runner): `mario-sokoban-linux.tar.gz`. Extract
+  it, enter the `package` folder and start `./run.sh`.
+- **Linux legacy** (built in an Ubuntu 20.04 container):
+  `mario-sokoban-linux-legacy.tar.gz`, same usage, for older distributions.
 - **Windows** (MSYS2 MinGW-w64): `mario-sokoban-windows.zip`, a portable
   folder (start `mario-sokoban.exe`), and `setup_mario_sokoban-<version>.exe`,
   an installer built with Inno Setup from `installer/mario-sokoban.iss`.
@@ -26,7 +33,23 @@ The files are available as artifacts of each workflow run. Pushing a tag
 `v<version>` (for example `v1.6`) also publishes them as a GitHub release, and
 the version number is used by the installer.
 
+### Supported systems
+
+| Download | Requirement | Examples |
+| --- | --- | --- |
+| `mario-sokoban-linux` | glibc of the latest Ubuntu (2.39 with Ubuntu 24.04) | Ubuntu 24.04+, Debian 13+, Fedora 40+ |
+| `mario-sokoban-linux-legacy` | glibc 2.31 or newer | Ubuntu 20.04+, Debian 11+, Fedora 32+ |
+| Windows zip / installer | 64-bit Windows | Windows 10 and 11 |
+
+The SDL runtime and the other libraries are bundled in `package/lib`; only the
+C library (glibc) comes from the system, hence the minimum version. The legacy
+archive runs on recent distributions as well. On recent distributions SDL 1.2
+is provided by sdl12-compat, which loads SDL 2 at run time: the package then
+bundles SDL 2 as well.
+
 ## Playing
+
+The complete rules (in French) are in [REGLES.md](REGLES.md).
 
 - Six built-in levels, with a top 3 of the best times for each level.
 - A level editor (`2 - CREER`): `MODIFIER` opens a personal level slot (an
@@ -105,7 +128,7 @@ medals and personal levels) and never overwrites existing personal levels.
 
 ## Build the SDL 1.2 version on Linux
 
-On Ubuntu 22.04, install CMake, a C++ compiler, and the SDL 1.2 development
+On Ubuntu (22.04 or newer), install CMake, a C++ compiler, and the SDL 1.2 development
 package, then run:
 
 ```sh
