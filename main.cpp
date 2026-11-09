@@ -419,7 +419,7 @@ while(finpartie < 4 && quit == 0)
       {partie =1;
       continuer=0;
       }
-      if(posiclic.x >= 176 && posiclic.x <=480  && posiclic.y >= 257 && posiclic.y <= 287)
+      if(posiclic.x >= 176 && posiclic.x <=480  && posiclic.y >= 257 && posiclic.y <= 302)
     {partie = 2;
     continuer = 0;}
        }
