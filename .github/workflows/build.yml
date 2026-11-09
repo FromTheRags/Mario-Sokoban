@@ -17,7 +17,7 @@ jobs:
   linux:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: libsdl-org/setup-sdl@main
         id: sdl
         with:
@@ -31,7 +31,7 @@ jobs:
         run: |
           ./tools/package_sdl3_linux.sh build/package
           tar -C build -czf build/mario-sokoban-sdl3-linux.tar.gz package
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: mario-sokoban-sdl3-linux
           path: build/mario-sokoban-sdl3-linux.tar.gz
@@ -39,7 +39,7 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -73,7 +73,7 @@ jobs:
           }
           & $iscc.FullName "/DAppVersion=${{ steps.version.outputs.value }}" installer\mario-sokoban.iss
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: mario-sokoban-sdl3-windows
           path: |
@@ -87,11 +87,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: release
       - name: Publish the GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: Mario Sokoban ${{ github.ref_name }}
           generate_release_notes: true
