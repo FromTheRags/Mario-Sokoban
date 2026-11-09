@@ -12,7 +12,7 @@ ldd "$binary" | awk '$2 == "=>" && $3 ~ /^\// && $1 !~ /^lib(c|m|dl|pthread|rt|r
     cp -L "$library" "$package_dir/lib/"
 done
 
-cp LICENSES.md NotoSans-OFL.txt SDL-1.2-LGPL-2.1.txt SDL-image-zlib.txt SDL-ttf-zlib.txt "$package_dir/"
+cp LICENSES.md SDL-1.2-LGPL-2.1.txt "$package_dir/"
 cat > "$package_dir/run.sh" <<'RUN'
 #!/usr/bin/env bash
 set -euo pipefail

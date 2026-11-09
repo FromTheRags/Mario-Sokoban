@@ -74,10 +74,13 @@ if(WIN32)
     )
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         get_filename_component(MINGW_RUNTIME_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
-        add_custom_command(TARGET mario-sokoban POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${MINGW_RUNTIME_DIR}/libwinpthread-1.dll" "$<TARGET_FILE_DIR:mario-sokoban>"
-        )
+        # Some MinGW distributions link winpthread statically: copy it only if present.
+        if(EXISTS "${MINGW_RUNTIME_DIR}/libwinpthread-1.dll")
+            add_custom_command(TARGET mario-sokoban POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${MINGW_RUNTIME_DIR}/libwinpthread-1.dll" "$<TARGET_FILE_DIR:mario-sokoban>"
+            )
+        endif()
     endif()
 else()
     find_path(SDL12_INCLUDE_DIR NAMES SDL/SDL.h REQUIRED)
@@ -97,6 +100,4 @@ add_custom_command(TARGET mario-sokoban POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/règles.docx" "${PACKAGE_DIR}/règles.docx"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/LICENSES.md" "${PACKAGE_DIR}/LICENSES.md"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/SDL-1.2-LGPL-2.1.txt" "${PACKAGE_DIR}/SDL-1.2-LGPL-2.1.txt"
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/SDL-image-zlib.txt" "${PACKAGE_DIR}/SDL-image-zlib.txt"
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/SDL-ttf-zlib.txt" "${PACKAGE_DIR}/SDL-ttf-zlib.txt"
 )
