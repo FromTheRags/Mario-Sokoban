@@ -1,40 +1,20 @@
 name: Build
 
+# SDL 3 version (branch SDL_3). Every push builds Linux and Windows;
+# a tag sdl3-v* (for example sdl3-v1.6) also publishes a GitHub release with the
+# Linux archive, the Windows zip and the Windows installer.
 on:
   push:
-    branches: [master, main, SDL_3]
-    tags: ['v*', 'sdl3-v*']
+    branches: ['**']
+    tags: ['sdl3-v*']
   pull_request:
-    branches: [master, main, SDL_3]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build-sdl12:
-    if: github.ref_name != 'SDL_3' && github.base_ref != 'SDL_3' && github.head_ref != 'SDL_3' && !startsWith(github.ref, 'refs/tags/sdl3-v')
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install SDL 1.2 development libraries
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes cmake g++ pkg-config libsdl1.2-dev libsdl-image1.2-dev libsdl-ttf2.0-dev
-      - name: Configure and build
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-      - name: Bundle the executable and SDL runtime
-        run: |
-          cmake --build build --parallel
-          ./tools/package_linux.sh build/package
-          tar -C build -czf build/mario-sokoban-sdl12-linux.tar.gz package
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mario-sokoban-sdl12-linux
-          path: build/mario-sokoban-sdl12-linux.tar.gz
-
-  build-sdl3:
-    if: github.ref_name == 'SDL_3' || github.base_ref == 'SDL_3' || github.head_ref == 'SDL_3' || startsWith(github.ref, 'refs/tags/sdl3-v')
+  linux:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -42,14 +22,13 @@ jobs:
         id: sdl
         with:
           version: 3-latest
-          version-sdl-ttf: 3-latest
-
           install-linux-dependencies: true
-      - name: Configure and build
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{ steps.sdl.outputs.prefix }}
-      - name: Bundle SDL runtime
+      - name: Build
         run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{ steps.sdl.outputs.prefix }}
           cmake --build build --parallel
+      - name: Bundle the SDL runtime
+        run: |
           ./tools/package_sdl3_linux.sh build/package
           tar -C build -czf build/mario-sokoban-sdl3-linux.tar.gz package
       - uses: actions/upload-artifact@v4
@@ -57,18 +36,63 @@ jobs:
           name: mario-sokoban-sdl3-linux
           path: build/mario-sokoban-sdl3-linux.tar.gz
 
-  publish-release:
-    needs: [build-sdl12, build-sdl3]
-    if: always() && (startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/sdl3-v')) && (needs.build-sdl12.result == 'success' || needs.build-sdl3.result == 'success')
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: false
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+      - name: Build (MinGW-w64, official SDL 3 SDK downloaded by CMake)
+        shell: msys2 {0}
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF_TYPE -eq 'tag') { $v = $env:GITHUB_REF_NAME -replace '^sdl3-v', '' }
+          else { $v = "dev-$($env:GITHUB_SHA.Substring(0, 7))" }
+          "value=$v" >> $env:GITHUB_OUTPUT
+      - name: Zip the portable version
+        shell: pwsh
+        run: Compress-Archive -Path build\package\* -DestinationPath build\mario-sokoban-sdl3-windows.zip
+      - name: Build the installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup*\ISCC.exe", "$env:ProgramFiles\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $iscc) {
+            choco install innosetup --no-progress -y
+            $iscc = Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup*\ISCC.exe", "$env:ProgramFiles\Inno Setup*\ISCC.exe" | Select-Object -First 1
+          }
+          & $iscc.FullName "/DAppVersion=${{ steps.version.outputs.value }}" installer\mario-sokoban.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mario-sokoban-sdl3-windows
+          path: |
+            build/mario-sokoban-sdl3-windows.zip
+            build/installer/*.exe
+
+  release:
+    needs: [linux, windows]
+    if: startsWith(github.ref, 'refs/tags/sdl3-v')
     runs-on: ubuntu-22.04
     permissions:
       contents: write
     steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           path: release
-      - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
         with:
-          files: release/**/*.tar.gz
+          files: |
+            release/**/*.tar.gz
+            release/**/*.zip
+            release/**/*.exe

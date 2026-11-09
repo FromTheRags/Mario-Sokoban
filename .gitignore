@@ -1,12 +1,8 @@
 /build/
-/bin/
-/obj/
 /.idea/
 *.exe
 *.dll
-*.layout
-*.depend
-*.cbp
-*.iss
 setup_*.exe
 /cmake-build-*/
+/data/best_times.txt
+/data/*.lvl

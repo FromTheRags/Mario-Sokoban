@@ -6,39 +6,47 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(SDL3 CONFIG QUIET)
-find_package(SDL3_ttf CONFIG QUIET)
-if((NOT SDL3_FOUND OR NOT SDL3_ttf_FOUND) AND WIN32 AND MINGW)
-    # A clean CLion/MinGW checkout downloads the official prebuilt development
-    # SDKs into the build folder. GitHub Actions uses setup-sdl's 3-latest.
+if(NOT SDL3_FOUND AND WIN32)
+    # A clean Windows checkout (CLion with its bundled MinGW *or* with the
+    # Visual Studio toolchain) downloads the official prebuilt development SDK
+    # into the build folder. GitHub Actions installs SDL with setup-sdl.
+    if(MSVC)
+        set(SDL3_SDK_URL https://github.com/libsdl-org/SDL/releases/download/release-3.4.18/SDL3-devel-3.4.18-VC.zip)
+        set(SDL3_SDK_HASH 78d84602ae616cfe26b33a73b7d3b9b6b56e8a6650e53d92c9c6ca938f747acd)
+    elseif(MINGW)
+        set(SDL3_SDK_URL https://github.com/libsdl-org/SDL/releases/download/release-3.4.18/SDL3-devel-3.4.18-mingw.tar.gz)
+        set(SDL3_SDK_HASH 049b9dd711e3fb3f8d84feb998dfec54a75e17cf539c4a80ff4d058d839771cf)
+    else()
+        message(FATAL_ERROR "SDL 3 was not found. Use the MinGW or Visual Studio toolchain, "
+                            "or set CMAKE_PREFIX_PATH to an SDL 3 installation.")
+    endif()
     include(FetchContent)
-    if(NOT SDL3_FOUND)
-        FetchContent_Declare(SDL3WindowsSDK
-            URL https://github.com/libsdl-org/SDL/releases/download/release-3.4.18/SDL3-devel-3.4.18-mingw.tar.gz
-            URL_HASH SHA256=049b9dd711e3fb3f8d84feb998dfec54a75e17cf539c4a80ff4d058d839771cf
-            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-        )
-        FetchContent_MakeAvailable(SDL3WindowsSDK)
-        find_package(SDL3 CONFIG REQUIRED PATHS "${sdl3windowssdk_SOURCE_DIR}/cmake" NO_DEFAULT_PATH)
-    endif()
-    if(NOT SDL3_ttf_FOUND)
-        FetchContent_Declare(SDL3TtfWindowsSDK
-            URL https://github.com/libsdl-org/SDL_ttf/releases/download/release-3.2.2/SDL3_ttf-devel-3.2.2-mingw.tar.gz
-            URL_HASH SHA256=bb57f26787d6a2e108158562feb061fcdf6f68a110f9c8cf9af42ff343d4e41c
-            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-        )
-        FetchContent_MakeAvailable(SDL3TtfWindowsSDK)
-        find_package(SDL3_ttf CONFIG REQUIRED PATHS "${sdl3ttfwindowssdk_SOURCE_DIR}/cmake" NO_DEFAULT_PATH)
-    endif()
+    FetchContent_Declare(SDL3WindowsSDK
+        URL ${SDL3_SDK_URL}
+        URL_HASH SHA256=${SDL3_SDK_HASH}
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    )
+    FetchContent_MakeAvailable(SDL3WindowsSDK)
+    find_package(SDL3 CONFIG REQUIRED PATHS "${sdl3windowssdk_SOURCE_DIR}/cmake" NO_DEFAULT_PATH)
 endif()
 
-find_package(SDL3 REQUIRED CONFIG)
-find_package(SDL3_ttf REQUIRED CONFIG)
+find_package(SDL3 3.4 REQUIRED CONFIG)
 
-add_executable(mario-sokoban main.cpp)
+if(WIN32)
+    # Windows GUI application (no console window) with the player icon.
+    add_executable(mario-sokoban WIN32 main.cpp bitmap_font.hpp icone.rc)
+else()
+    add_executable(mario-sokoban main.cpp bitmap_font.hpp)
+endif()
 set_target_properties(mario-sokoban PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/package"
 )
-target_link_libraries(mario-sokoban PRIVATE SDL3::SDL3 SDL3_ttf::SDL3_ttf)
+target_link_libraries(mario-sokoban PRIVATE SDL3::SDL3)
+if(MSVC)
+    # The sources are UTF-8; also silence the CRT "unsafe function" warnings.
+    target_compile_options(mario-sokoban PRIVATE /utf-8)
+    target_compile_definitions(mario-sokoban PRIVATE _CRT_SECURE_NO_WARNINGS)
+endif()
 if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # Do not require CLion's MinGW bin directory to be present on PATH at run time.
     target_link_options(mario-sokoban PRIVATE -static-libgcc -static-libstdc++)
@@ -53,17 +61,21 @@ if(WIN32)
 endif()
 if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     get_filename_component(MINGW_RUNTIME_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
-    add_custom_command(TARGET mario-sokoban POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${MINGW_RUNTIME_DIR}/libwinpthread-1.dll" "${PACKAGE_DIR}"
-    )
+    # Some MinGW distributions link winpthread statically: copy it only if present.
+    if(EXISTS "${MINGW_RUNTIME_DIR}/libwinpthread-1.dll")
+        add_custom_command(TARGET mario-sokoban POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${MINGW_RUNTIME_DIR}/libwinpthread-1.dll" "${PACKAGE_DIR}"
+        )
+    endif()
 endif()
 add_custom_command(TARGET mario-sokoban POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/sprites_mario_sokoban" "${PACKAGE_DIR}/sprites_mario_sokoban"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/niveaux perso" "${PACKAGE_DIR}/niveaux perso"
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/NotoSans.ttf" "${PACKAGE_DIR}/NotoSans.ttf"
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/NotoSans-OFL.txt" "${PACKAGE_DIR}/NotoSans-OFL.txt"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${PACKAGE_DIR}/data"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/caisse.bmp" "${PACKAGE_DIR}/caisse.bmp"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/règles.txt" "${PACKAGE_DIR}/règles.txt"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/règles.docx" "${PACKAGE_DIR}/règles.docx"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/LICENSES.md" "${PACKAGE_DIR}/LICENSES.md"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/SDL3-zlib.txt" "${PACKAGE_DIR}/SDL3-zlib.txt"
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/SDL3-ttf-zlib.txt" "${PACKAGE_DIR}/SDL3-ttf-zlib.txt"
 )

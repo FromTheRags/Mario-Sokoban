@@ -1,18 +1,17 @@
 # Licences et provenance des ressources
 
-## SDL 3 et SDL_ttf 3
+## SDL 3
 
-La branche `SDL_3` utilise les API natives de SDL 3 et SDL_ttf 3. Les deux
-bibliothèques sont distribuées sous licence zlib. La CI GitHub utilise
-`libsdl-org/setup-sdl` pour récupérer leurs versions stables les plus récentes
-et inclut les bibliothèques dynamiques requises dans l’archive Linux.
-Les textes de ces licences sont fournis dans `SDL3-zlib.txt` et
-`SDL3-ttf-zlib.txt`.
+La branche `SDL_3` utilise les API natives de SDL 3, distribuée sous licence
+zlib (texte dans `SDL3-zlib.txt`). Sous Windows, CMake télécharge le SDK
+officiel ; la CI GitHub utilise `libsdl-org/setup-sdl` et inclut la
+bibliothèque dynamique dans l’archive Linux.
 
-## Noto Sans
+## Police
 
-La police fournie est Noto Sans du projet Google Fonts, sous licence SIL Open
-Font License 1.1. La licence est incluse dans `NotoSans-OFL.txt`.
+Les textes sont dessinés avec une police bitmap 5 × 7 originale définie dans
+`bitmap_font.hpp` (la même que sur la branche `master`). Aucun fichier de
+police n’est fourni.
 
 ## Illustrations du jeu
 
