@@ -1,5 +1,9 @@
 # Mario Sokoban – SDL 3
 
+> **Note :** la version d’origine en SDL 1.2 se trouve sur la branche
+> [`master`](https://github.com/FromTheRags/Mario-Sokoban/tree/master),
+> avec ses propres releases (tags `v*`).
+
 Cette branche est le portage SDL 3 du jeu de la branche `master` (SDL 1.2).
 Les deux versions ont les mêmes menus, les mêmes graphismes et les mêmes textes :
 le jeu est dessiné sur une surface de 680 × 544 avec les mêmes sprites et la
