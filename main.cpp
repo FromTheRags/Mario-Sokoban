@@ -351,6 +351,7 @@ SDL_Rect position;//création de la variable position qui contient 2 sous variabl
     SDL_Event event;
     FILE*test = NULL;
     int returnplay = 0,vide = 0,accesniv = 0,boucleniv = 0;
+    int retourListe = 0;//retour de l'editeur vers la liste des niveaux
     int jouer = 0,debutcrea = 0,quita = 0,cursus = 0,nombfois = 0,valeurtest = 0,clicniv = 0,pass=0,sauteif = 0,tobechoix = 0,boucle = 0;
     int continuer = 1,quit =0,partie = 0,niveau = 0,fois = 0,finpartie = 2,endwhile = 0,level= 0,lignesvar = 0,arrete =0,creationend = 0;
     int tableau1[80]={0};
@@ -894,6 +895,8 @@ do
         sauteif = 0;
         creationend = 0;
 
+  if(!retourListe)
+  {
    ecran_partie = SDL_LoadBMP("sprites_mario_sokoban/editor.bmp");
     if(ecran_partie){SDL_BlitSurface(ecran_partie,NULL,ecran,&posi_partie);SDL_FreeSurface(ecran_partie);ecran_partie=NULL;}
     retour=SDL_LoadBMP("sprites_mario_sokoban/back.bmp");
@@ -948,6 +951,8 @@ do
        }
 
     }
+  }
+  retourListe = 0;
     level = CUSTOM_LEVEL_COUNT;
 do
 {
@@ -1080,6 +1085,7 @@ do
        creationend = 3;
        continuer = 0;
        quita = 1;
+       retourListe = (jouer == 2);//fleche retour : revenir au choix du niveau a editer
       }
       if(posiclic.x >=68*9 && posiclic.x < 68*10 && posiclic.y < 34)
       {
@@ -1315,7 +1321,7 @@ nombfois++;
      lignesvar = 0;
     }
     }
-    }while((clicniv == CUSTOM_BACK && quit == 0 && jouer == 2)||(clicniv == CUSTOM_BACK && quit == 0 && jouer == 3) );
+    }while((clicniv == CUSTOM_BACK && quit == 0 && jouer == 2)||(clicniv == CUSTOM_BACK && quit == 0 && jouer == 3)||(retourListe && quit == 0));
 }while(debutcrea == 1 && quit == 0 && jouer != 4);
 }
 }
