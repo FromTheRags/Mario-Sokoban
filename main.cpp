@@ -809,8 +809,9 @@ Choice editorMenu(App &app)
             if (app.quit) return Choice::Quit;
             if (slot == kListBack) break;
             if (mode == 1) {
+                // The back arrow of the editor returns to the level list.
                 if (editLevel(app, slot) == Choice::Quit) return Choice::Quit;
-                break;
+                continue;
             }
             if (confirmReset(app)) resetCustomLevel(slot);
             if (app.quit) return Choice::Quit;
