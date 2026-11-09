@@ -96,8 +96,7 @@ add_custom_command(TARGET mario-sokoban POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/data" "${PACKAGE_DIR}/data"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/caisse.bmp" "${PACKAGE_DIR}/caisse.bmp"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/caisse.ico" "${PACKAGE_DIR}/caisse.ico"
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/règles.txt" "${PACKAGE_DIR}/règles.txt"
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/règles.docx" "${PACKAGE_DIR}/règles.docx"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/REGLES.md" "${PACKAGE_DIR}/REGLES.md"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/LICENSES.md" "${PACKAGE_DIR}/LICENSES.md"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/SDL-1.2-LGPL-2.1.txt" "${PACKAGE_DIR}/SDL-1.2-LGPL-2.1.txt"
 )

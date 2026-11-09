@@ -2546,8 +2546,8 @@ void lecture(int niveau,int tableauniv[])
                 for(int cell=0;cell<80;++cell)
                     if(fscanf(fichier,"%d",&tableauniv[cell])!=1) tableauniv[cell]=2;
             }else if(format==1){
-                // Legacy files used the first entry as the enabled flag and could not store cell 0.
-                tableauniv[0]=1;
+                // Legacy files used the first entry as the enabled flag and could not store cell 0 (blank floor).
+                tableauniv[0]=2;
                 for(int cell=1;cell<80;++cell)
                     if(fscanf(fichier,"%d",&tableauniv[cell])!=1) tableauniv[cell]=2;
             }
