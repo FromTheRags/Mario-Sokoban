@@ -273,8 +273,8 @@ Map readCustomLevel(int slot)
         if (format >= 2) {
             for (int &cell : map) if (std::fscanf(file, "%d", &cell) != 1) cell = Floor;
         } else if (format == 1) {
-            // Legacy files used the first entry as the enabled flag and could not store cell 0.
-            map[0] = Wall;
+            // Legacy files used the first entry as the enabled flag and could not store cell 0 (blank floor).
+            map[0] = Floor;
             for (int cell = 1; cell < kCells; ++cell) if (std::fscanf(file, "%d", &map[cell]) != 1) map[cell] = Floor;
         }
     }
