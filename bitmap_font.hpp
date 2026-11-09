@@ -50,6 +50,7 @@ inline const BitmapGlyph *BitmapGlyphFor(char key)
         {'"',{10,10,20,0,0,0,0}}, {'(',{2,4,8,8,8,4,2}},
         {')',{8,4,2,2,2,4,8}}, {'=',{0,31,0,31,0,0,0}},
         {'%',{17,2,4,8,17,0,0}}, {'*',{0,21,14,31,14,21,0}},
+        {'<',{2,4,8,16,8,4,2}}, {'>',{8,4,2,1,2,4,8}},
         {' ',{0,0,0,0,0,0,0}}
     };
     if (key >= 'a' && key <= 'z') key = static_cast<char>(key - 'a' + 'A');
@@ -87,12 +88,14 @@ inline std::vector<char> BitmapTextCharacters(const char *text)
     return result;
 }
 
+inline int BitmapScale(const TTF_Font *font) { return font ? std::max(1, font->point_size / 12) : 1; }
+
 inline SDL_Surface *BitmapRenderText(TTF_Font *font, const char *text,
                                      SDL_Color foreground, const SDL_Color *background)
 {
     if (!font || !text) return NULL;
     const std::vector<char> characters = BitmapTextCharacters(text);
-    const int scale = std::max(1, font->point_size / 12);
+    const int scale = BitmapScale(font);
     const int advance = 6 * scale;
     const int width = std::max(1, static_cast<int>(characters.size()) * advance);
     const int height = 9 * scale;
