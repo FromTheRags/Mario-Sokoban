@@ -128,10 +128,11 @@ iscc installer\mario-sokoban.iss
 L’installateur est créé dans `build\installer`. `/DAppVersion=1.6` fixe la
 version, `/DSourceDir=<dossier>` emballe un autre dossier de build (chemin
 absolu, ou relatif à `installer`, par exemple `..\cmake-build-release\package`).
-Le jeu s’installe dans *Program Files* ; les dossiers `data` et
-`niveaux perso` (temps, médailles, niveaux personnels) sont modifiables par
-tous les utilisateurs et les niveaux personnels existants ne sont jamais
-écrasés.
+Le jeu s’installe pour l’utilisateur courant uniquement, sans droits
+d’administrateur (par défaut dans `%LOCALAPPDATA%\Programs\Mario Sokoban`) :
+il peut donc écrire dans les dossiers `data` et `niveaux perso` (temps,
+médailles, niveaux personnels). Les niveaux personnels existants ne sont
+jamais écrasés.
 
 ## Ressources et licences
 

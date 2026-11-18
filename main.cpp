@@ -23,6 +23,14 @@ constexpr int kWidth = kCols * kTile, kHeight = kRows * kTile;
 constexpr int kBuiltinLevels = 6;
 constexpr int kLevelsPerPage = 9, kPageCount = 3, kCustomLevels = kLevelsPerPage * kPageCount;
 constexpr int kBestTimeRows = kBuiltinLevels + kCustomLevels;
+// In-game back and retry buttons: half-size icons in the top corners, so the
+// cells underneath stay mostly visible.
+constexpr int kGameButton = 34;
+
+// Version shown in the main menu (set by CMake).
+#ifndef GAME_VERSION
+#define GAME_VERSION "dev"
+#endif
 
 // Cell values, identical to the level files: 1 wall, 2 floor, 3 crate,
 // 4 target, 5 player, 6 crate on a target (0 = never painted = floor).
@@ -401,7 +409,13 @@ int mainMenu(App &app)
     blit(app, "menu.bmp", 0, 0);
     fill(app, {10, 482, 660, 52}, 29, 43, 61);
     fill(app, {13, 485, 654, 46}, 32, 55, 84);
-    centeredText(app, 32, "CREATED BY FROMTHERAGS", {13, 485, 654, 46}, kGold);
+    centeredText(app, 32, "CREATED BY FROMTHERAGS", {13, 485, 654, 34}, kGold);
+    // Game version and linked SDL version, below the credits.
+    const int sdl = SDL_GetVersion();
+    char version[64];
+    std::snprintf(version, sizeof(version), "V%s - SDL %d.%d.%d", GAME_VERSION, SDL_VERSIONNUM_MAJOR(sdl),
+                  SDL_VERSIONNUM_MINOR(sdl), SDL_VERSIONNUM_MICRO(sdl));
+    centeredText(app, 12, version, {13, 515, 654, 12}, {210, 225, 239, 255});
     centeredText(app, 40, "MARIO SOKOBAN", {157, 35, 366, 94}, kLight);
     button(app, 26, "1 - JOUER", {176, 210, 304, 45});
     button(app, 26, "2 - CREER", {176, 257, 304, 45}, true);
@@ -657,13 +671,13 @@ Choice playLevel(App &app, const Map &start, bool builtin, int number, bool reco
         const Uint64 started = SDL_GetTicks();
         bool restart = false;
         while (!restart) {
-            // board, buttons, player, then timer (same layering as master)
+            // board, player, small buttons, then timer (same layering as master)
             drawBoard(app, map, nullptr);
-            blit(app, "back.bmp", 0, 0);
-            blit(app, "retry.bmp", 9 * kTile, 0);
             const int px = (player % kCols) * kTile, py = (player / kCols) * kTile;
             blit(app, "floor.bmp", px, py);
             blit(app, facing, px, py);
+            blitScaled(app, "back.bmp", {0, 0, kGameButton, kGameButton});
+            blitScaled(app, "retry.bmp", {kWidth - kGameButton, 0, kGameButton, kGameButton});
             timerPanel(app, started);
             present(app);
 
@@ -700,8 +714,8 @@ Choice playLevel(App &app, const Map &start, bool builtin, int number, bool reco
                 default: break;
                 }
             }
-            if (clickIn(event, 0, 0, 68, 68)) return Choice::Back;
-            if (clickIn(event, 9 * kTile, 0, kWidth, 68)) restart = true;
+            if (clickIn(event, 0, 0, kGameButton - 1, kGameButton - 1)) return Choice::Back;
+            if (clickIn(event, kWidth - kGameButton, 0, kWidth - 1, kGameButton - 1)) restart = true;
         }
     }
 }

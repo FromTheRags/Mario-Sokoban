@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(MarioSokobanSDL3 LANGUAGES C CXX)
+project(MarioSokobanSDL3 VERSION 1.3 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -42,6 +42,13 @@ set_target_properties(mario-sokoban PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/package"
 )
 target_link_libraries(mario-sokoban PRIVATE SDL3::SDL3)
+# Version shown in the main menu: the project version above or, for a release
+# built by GitHub Actions from a tag (sdl3-v1.3), the version of that tag.
+set(GAME_VERSION "${PROJECT_VERSION}")
+if("$ENV{GITHUB_REF_TYPE}" STREQUAL "tag" AND "$ENV{GITHUB_REF_NAME}" MATCHES "^sdl3-v(.+)$")
+    set(GAME_VERSION "${CMAKE_MATCH_1}")
+endif()
+target_compile_definitions(mario-sokoban PRIVATE GAME_VERSION="${GAME_VERSION}")
 if(MSVC)
     # The sources are UTF-8; also silence the CRT "unsafe function" warnings.
     target_compile_options(mario-sokoban PRIVATE /utf-8)
