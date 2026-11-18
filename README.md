@@ -122,9 +122,11 @@ iscc installer\mario-sokoban.iss
 The installer is written to `build\installer`. Pass `/DAppVersion=1.6` to set
 the version, or `/DSourceDir=<folder>` to package another build folder (an
 absolute path, or relative to `installer`, for example
-`..\cmake-build-release\package`). It installs into *Program Files*,
-lets every user write the `data` and `niveaux perso` folders (best times,
-medals and personal levels) and never overwrites existing personal levels.
+`..\cmake-build-release\package`). It installs for the current user only,
+without administrator rights (by default into
+`%LOCALAPPDATA%\Programs\Mario Sokoban`), so the game can write the `data` and
+`niveaux perso` folders (best times, medals and personal levels), and it
+never overwrites existing personal levels.
 
 ## Build the SDL 1.2 version on Linux
 

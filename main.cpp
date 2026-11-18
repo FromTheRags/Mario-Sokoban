@@ -44,6 +44,8 @@ void draw_multicolor_victory(SDL_Surface* ecran, TTF_Font* font, int centerX, in
 void draw_player_on_floor(SDL_Surface* ecran, SDL_Surface* player, SDL_Rect at);
 void draw_level_timer(SDL_Surface* ecran, Uint32 startedTicks);
 void draw_go_label(SDL_Surface* ecran);
+void draw_menu_version(SDL_Surface* ecran);
+void draw_game_buttons(SDL_Surface* ecran);
 void blit_half_size(SDL_Surface* source, SDL_Surface* target, int x, int y);
 void load_best_times(int level, unsigned int times[3]);
 void record_best_time(int level, unsigned int seconds);
@@ -247,6 +249,23 @@ static const int BUILTIN_LEVEL_COUNT = 6;
 static const int BEST_TIME_ROWS = BUILTIN_LEVEL_COUNT + CUSTOM_LEVEL_COUNT;
 static int g_customPage = 0;
 
+// Version shown in the main menu (set by CMake).
+#ifndef GAME_VERSION
+#define GAME_VERSION "dev"
+#endif
+
+// In-game back and retry buttons: half-size icons in the top corners, so the
+// cells underneath stay mostly visible.
+static const int GAME_BUTTON_SIZE = 34;
+static bool game_back_clicked(SDL_Rect click)
+{
+    return click.x >= 0 && click.x < GAME_BUTTON_SIZE && click.y >= 0 && click.y < GAME_BUTTON_SIZE;
+}
+static bool game_retry_clicked(SDL_Rect click)
+{
+    return click.x >= GAME_WIDTH - GAME_BUTTON_SIZE && click.x < GAME_WIDTH && click.y >= 0 && click.y < GAME_BUTTON_SIZE;
+}
+
 static void custom_level_path(int level, char *path, size_t size)
 {
     snprintf(path, size, "niveaux perso/niveau%d.txt", level);
@@ -372,7 +391,7 @@ while(finpartie < 4 && quit == 0)
     SDL_Rect creditInset = {13, 485, 654, 46};
     SDL_FillRect(ecran, &creditInset, SDL_MapRGB(ecran->format, 32, 55, 84));
     police = TTF_OpenFont("NotoSans.ttf", 32);
-    draw_centered_game_text(ecran,police,"CREATED BY FROMTHERAGS",SDL_Rect{13,485,654,46},SDL_Color{255,225,110});
+    draw_centered_game_text(ecran,police,"CREATED BY FROMTHERAGS",SDL_Rect{13,485,654,34},SDL_Color{255,225,110});
     TTF_CloseFont(police);
     police = TTF_OpenFont("NotoSans.ttf", 40);
     draw_centered_game_text(ecran, police, "MARIO SOKOBAN", SDL_Rect{157,35,366,94}, SDL_Color{255,245,205});
@@ -381,6 +400,7 @@ while(finpartie < 4 && quit == 0)
     draw_ui_button(ecran, police, "1 - JOUER", SDL_Rect{176,210,304,45});
     draw_ui_button(ecran, police, "2 - CREER", SDL_Rect{176,257,304,45}, true);
     TTF_CloseFont(police);
+    draw_menu_version(ecran);
 
     SDL_Flip(ecran);
 
@@ -547,12 +567,7 @@ while(finpartie < 4 && quit == 0)
     }
     endwhile = 0;
     load(ecran,niveau,tableau1);
-    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
-    SDL_BlitSurface(retour , NULL, ecran, &posiretour );
-
-    posireplay.x=9*68;
-    replay = SDL_LoadBMP ("sprites_mario_sokoban/retry.bmp");
-    SDL_BlitSurface(replay , NULL, ecran, &posireplay );
+    draw_game_buttons(ecran);
     SDL_Flip(ecran);
 
 
@@ -749,11 +764,11 @@ fois=0;
          case SDL_MOUSEBUTTONUP: /* Clic de la souris */
       posiclic.x = event.button.x; /* change les coordonnées de posiclic*/
       posiclic.y = event.button.y;
-      if(posiclic.x >= 0 && posiclic.x <= 68 && posiclic.y >= 0 && posiclic.y <= 68)
+      if(game_back_clicked(posiclic))
       {finpartie = 1;
        endwhile=1;
       }
-      if(posiclic.x >=68*9 && posiclic.x < 68*10 && posiclic.y < 68)
+      if(game_retry_clicked(posiclic))
       {finpartie = 2;
        levelStartTicks = SDL_GetTicks();
        endwhile=1;
@@ -761,35 +776,10 @@ fois=0;
       break;
       }
 
-if(posimario.y == 0)
-{
-    if(posimario.x == 68*8)
-    {
-    replay = SDL_LoadBMP ("sprites_mario_sokoban/retry.bmp");
-    SDL_BlitSurface(replay , NULL, ecran, &posireplay );
-    }
-    if(posimario.x == 68)
-    {
-    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
-    SDL_BlitSurface(retour , NULL, ecran, &posiretour );
-    }
-}
-if(posimario.y == 68)
-{
-    if(posimario.x == 0)
-    {
-    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
-    SDL_BlitSurface(retour , NULL, ecran, &posiretour );
-    }
-    if(posimario.x == 68*9)
-    {
-    replay = SDL_LoadBMP ("sprites_mario_sokoban/retry.bmp");
-    SDL_BlitSurface(replay , NULL, ecran, &posireplay );
-    }
-}
 
 
 draw_player_on_floor(ecran, mario, posimario);
+draw_game_buttons(ecran);
 draw_level_timer(ecran,levelStartTicks); /* On
 place mario à sa nouvelle position */
 SDL_Flip(ecran); /* On met à jour l'affichage */
@@ -1432,6 +1422,30 @@ void draw_go_label(SDL_Surface* ecran)
 {
     TTF_Font *font=TTF_OpenFont("NotoSans.ttf",16);
     if(font){draw_centered_game_text(ecran,font,"GO",SDL_Rect{544,0,68,34},SDL_Color{255,250,230});TTF_CloseFont(font);}
+}
+
+// Game version and linked SDL version, below the credits of the main menu.
+void draw_menu_version(SDL_Surface* ecran)
+{
+    const SDL_version *sdl=SDL_Linked_Version();
+    char label[64];
+    snprintf(label,sizeof(label),"V%s - SDL %d.%d.%d",GAME_VERSION,sdl->major,sdl->minor,sdl->patch);
+    TTF_Font *font=TTF_OpenFont("NotoSans.ttf",12);
+    if(font){draw_centered_game_text(ecran,font,label,SDL_Rect{13,515,654,12},SDL_Color{210,225,239});TTF_CloseFont(font);}
+}
+
+void draw_game_buttons(SDL_Surface* ecran)
+{
+    if(!ecran) return;
+    const char *icons[2]={"sprites_mario_sokoban/back.bmp","sprites_mario_sokoban/retry.bmp"};
+    const int iconX[2]={0,GAME_WIDTH-GAME_BUTTON_SIZE};
+    for(int button=0;button<2;++button){
+        SDL_Surface *icon=SDL_LoadBMP(icons[button]);
+        if(!icon) continue;
+        SDL_Surface *converted=SDL_ConvertSurface(icon,ecran->format,SDL_SWSURFACE);
+        if(converted){blit_half_size(converted,ecran,iconX[button],0);SDL_FreeSurface(converted);}
+        SDL_FreeSurface(icon);
+    }
 }
 
 void draw_level_timer(SDL_Surface* ecran, Uint32 startedTicks)
@@ -2738,13 +2752,7 @@ int play(int tableau1[],SDL_Surface* caisse,SDL_Rect posicaisse,SDL_Surface* ecr
     }
 
     load(ecran,niveau,tableaufixe);
-
-    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
-    SDL_BlitSurface(retour , NULL, ecran, &posiretour );
-
-    posireplay.x=9*68;
-    replay = SDL_LoadBMP ("sprites_mario_sokoban/retry.bmp");
-    SDL_BlitSurface(replay , NULL, ecran, &posireplay );
+    draw_game_buttons(ecran);
     draw_level_timer(ecran,customTimerStarted);
     SDL_Flip(ecran);
 
@@ -2913,14 +2921,14 @@ fois=0;
          case SDL_MOUSEBUTTONUP: /* Clic de la souris */
       posiclic.x = event.button.x; /* change les coordonnées de posiclic*/
       posiclic.y = event.button.y;
-      if(posiclic.x >= 0 && posiclic.x <= 68 && posiclic.y >= 0 && posiclic.y <= 68)
+      if(game_back_clicked(posiclic))
       {
           continuer = 0;
       endwhile = 1;
           return 0;
 
       }
-      if(posiclic.x >=68*9  && posiclic.x <= 68*10 && posiclic.y >= 0 && posiclic.y <= 68)
+      if(game_retry_clicked(posiclic))
       {finpartie = 2;
        customTimerStarted=SDL_GetTicks();
        endwhile=1;
@@ -2928,32 +2936,6 @@ fois=0;
       break;
       }
 
-if(posimario.y == 0)
-{
-    if(posimario.x == 68*8)
-    {
-    replay = SDL_LoadBMP ("sprites_mario_sokoban/retry.bmp");
-    SDL_BlitSurface(replay , NULL, ecran, &posireplay );
-    }
-    if(posimario.x == 68)
-    {
-    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
-    SDL_BlitSurface(retour , NULL, ecran, &posiretour );
-    }
-}
-if(posimario.y == 68)
-{
-    if(posimario.x == 0)
-    {
-    retour = SDL_LoadBMP ("sprites_mario_sokoban/back.bmp");
-    SDL_BlitSurface(retour , NULL, ecran, &posiretour );
-    }
-    if(posimario.x == 68*9)
-    {
-    replay = SDL_LoadBMP ("sprites_mario_sokoban/retry.bmp");
-    SDL_BlitSurface(replay , NULL, ecran, &posireplay );
-    }
-}
 i=0;
 while(i<a)
 {
@@ -2987,6 +2969,7 @@ if(objec == a && a != 0)
 
 objec = 0;
 draw_player_on_floor(ecran, mario, posimario);
+draw_game_buttons(ecran);
 draw_level_timer(ecran,customTimerStarted); /* On
 place mario à sa nouvelle position */
 SDL_Flip(ecran); /* On met à jour l'affichage */

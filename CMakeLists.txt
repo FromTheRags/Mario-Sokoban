@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(MarioSokoban LANGUAGES C CXX)
+project(MarioSokoban VERSION 1.4 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,6 +23,13 @@ else()
     add_executable(mario-sokoban main.cpp)
 endif()
 set_target_properties(mario-sokoban PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/package")
+# Version shown in the main menu: the project version above or, for a release
+# built by GitHub Actions from a tag (v1.4), the version of that tag.
+set(GAME_VERSION "${PROJECT_VERSION}")
+if("$ENV{GITHUB_REF_TYPE}" STREQUAL "tag" AND "$ENV{GITHUB_REF_NAME}" MATCHES "^v(.+)$")
+    set(GAME_VERSION "${CMAKE_MATCH_1}")
+endif()
+target_compile_definitions(mario-sokoban PRIVATE GAME_VERSION="${GAME_VERSION}")
 target_include_directories(mario-sokoban PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL-1.2/include")
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(mario-sokoban PRIVATE -finput-charset=ISO-8859-1)

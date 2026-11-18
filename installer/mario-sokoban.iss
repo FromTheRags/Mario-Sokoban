@@ -26,6 +26,10 @@ AppName={#AppName}
 AppVersion={#AppVersion}
 AppVerName={#AppName} {#AppVersion}
 AppPublisher=Rémi Fache
+; Install for the current user only, without asking for administrator rights.
+; {autopf} is then %LOCALAPPDATA%\Programs, a folder the user owns: the game
+; can write its levels, best times and medals next to the executable.
+PrivilegesRequired=lowest
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 AllowNoIcons=yes
@@ -48,15 +52,14 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Dirs]
-; The game writes its levels, best times and medals next to the executable:
-; let every user modify these folders, even under Program Files.
-Name: "{app}\data"; Permissions: users-modify
-Name: "{app}\niveaux perso"; Permissions: users-modify
+; The game writes its levels, best times and medals next to the executable.
+Name: "{app}\data"
+Name: "{app}\niveaux perso"
 
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Excludes: "\niveaux perso\*,\data\*"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Personal levels are user data: never overwrite or remove them on upgrade/uninstall.
-Source: "{#SourceDir}\niveaux perso\*"; DestDir: "{app}\niveaux perso"; Flags: onlyifdoesntexist uninsneveruninstall; Permissions: users-modify
+Source: "{#SourceDir}\niveaux perso\*"; DestDir: "{app}\niveaux perso"; Flags: onlyifdoesntexist uninsneveruninstall
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExe}"; WorkingDir: "{app}"
